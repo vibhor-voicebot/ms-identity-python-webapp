@@ -2,18 +2,32 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <title> Azure Onboarding Automation Framework </title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
 </head>
 <body>
-    <h1>Microsoft Identity Python Web App</h1>
+                     <div align="center">
+                <div align="center" class="border">
+                        <div class="header">
+                                <h4 class="word">Azure DevOps Onboarding Automation Framework</h4>
+                        </div></br></br></br>
+                        <h2 class="word">
+ <div class="msg">{{ msg }}</div>
 
-    <li><a href='{{ auth_url }}'>Sign In</a></li>
+ <li><a href='{{ auth_url }}'>Sign In using Azure MSAL/Managed Identity</a></li>
 
     {% if config.get("B2C_RESET_PASSWORD_AUTHORITY") %}
     <li><a href='{{_build_auth_code_flow(authority=config["B2C_RESET_PASSWORD_AUTHORITY"])["auth_uri"]}}'>Reset Password</a></li>
     {% endif %}
 
     <hr>
-    <footer style="text-align: right">Powered by MSAL Python {{ version }}</footer>
-</body>
+   
+                      
+                </div>
+                </div>
+ <footer style="text-align: right">Powered by Genpact</footer>
+                            </body>
+
 </html>
 

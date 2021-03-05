@@ -29,7 +29,7 @@ from subprocess import PIPE, run
 import sys,os
 from azure.cli.core import get_default_cli
 from flask import Flask, jsonify, request, render_template
-import socket, os, json, yaml, sys
+import socket, os, json, sys
 import requests
 import random, os
 from azure.common.client_factory import get_client_from_cli_profile

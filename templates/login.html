@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title> Azure Onboarding Automation Framework </title>
+    <title> Azure DevOps Onboarding Automation Framework </title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
 </head>
@@ -15,18 +15,18 @@
                         <h2 class="word">
  <div class="msg">{{ msg }}</div>
 
- <li><a href='{{ auth_url }}'>Sign In using Azure MSAL/Managed Identity</a></li>
+ <a href='{{ auth_url }}'>Sign In using Azure MSAL/Managed Identity</a>
 
     {% if config.get("B2C_RESET_PASSWORD_AUTHORITY") %}
     <li><a href='{{_build_auth_code_flow(authority=config["B2C_RESET_PASSWORD_AUTHORITY"])["auth_uri"]}}'>Reset Password</a></li>
     {% endif %}
-
+</br></br>
     <hr>
-   
+    <footer style="text-align: right">Powered by Genpact Microsoft CoE</footer>
                       
                 </div>
                 </div>
- <footer style="text-align: right">Powered by Genpact</footer>
+ 
                             </body>
 
 </html>

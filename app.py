@@ -9,7 +9,7 @@ import app_config
 
 from flask import Flask, render_template, request
 from flask import Flask, jsonify, request, render_template
-import socket, os, json, yaml, sys
+import socket, os, json, sys
 import requests
 import random, os
 from azure.common.client_factory import get_client_from_cli_profile

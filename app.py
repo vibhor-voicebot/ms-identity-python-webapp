@@ -55,8 +55,10 @@ def index():
         return redirect(url_for("login"))
     print ("Printing the User details from Session ++++++++++++++++++")
     user=session["user"]
+    organization = ""
+    organization = str(str(str(user.get('preferred_username')).split("@")[1]).split(".com")[0])
     print (user)
-    return render_template('index.html', user=session["user"], organization="", ansibleOutput="", version=msal.__version__)
+    return render_template('index.html', user=session["user"], organization=organization, ansibleOutput="", version=msal.__version__)
 
 @app.route("/login")
 def login():

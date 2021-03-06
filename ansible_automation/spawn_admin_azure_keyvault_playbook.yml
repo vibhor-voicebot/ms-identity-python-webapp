@@ -1,0 +1,77 @@
+---
+- hosts: localhost
+  gather_facts: false
+  connection: local
+  tasks:
+    - name: Azure login for creating Service Principles
+      shell: az login
+
+    - name: Creating Service Principles
+      shell: az ad sp create-for-rbac --name "{{servicePrincipalName}}" --skip-assignment --sdk-auth #where Sp name can be in form of "{{OrgName}}"-"{{ProjectName}}"
+      register: jsonSPOut
+
+    - set_fact: servicePrincipalTenantID={{jsonSPOut | json_query('jsonSPOut[0].tenantID')}}
+    - set_fact: servicePrincipalClientID={{jsonSPOut | json_query('jsonSPOut[0].clientID')}}
+    - set_fact: servicePrincipalClientSecret={{jsonSPOut | json_query('jsonSPOut[0].clientSecret')}}
+
+    - name: Fetching Service Principle ObjctID
+      shell: az ad sp show --id "{{servicePrincipalClientID}}" --query objectId
+      register: objectIdOut
+
+    - set_fact: servicePrincipalObjectId="{{objectIdOut}}"
+
+    - name: Try admin user login as service principal credentials to make resource group, vault keys/secrets using SP creds so that framework can use same SP creds to access these rs group/vault
+      shell: az login --service-principal --username {{servicePrincipalClientID}} --password {{servicePrincipalClientSecret}} --tenant {{servicePrincipalTenantID}}
+      register: SPCredsLoginOut
+
+    #- set_fact: userIdentityObjectId="{{userObjectIdOut}}"
+
+    - name: Create resource group
+      azure_rm_resourcegroup:
+        name: rg-"{{userOrgName}}"  # Or, rg-"{{Projectname}}" i.e. one resource group for each appname in a particular organization
+        location: eastus
+    - name: Create Azure Key Vault
+      azure_rm_keyvault:
+        resource_group: rg-"{{userOrgName}}"  # Or, rg-"{{Projectname}}" i.e. one resource group for each appname in a particular organization
+        vault_name: kv-rg-"{{userOrgName}}"  # Or, rg-"{{Projectname}}" i.e. one resource group for each appname in a particular organization
+        vault_tenant: "{{servicePrincipalTenantID}}"
+        enabled_for_deployment: yes
+        sku:
+          name: standard
+        access_policies:
+          - tenant_id: "{{servicePrincipalTenantID}}"
+            object_id: "{{servicePrincipalObjectId}}"
+            secrets:
+              - get
+              - list
+              - set
+          #- tenant_id: "{{userIdentityTenantID}}"
+            #object_id: "{{userIdentityObjectId}}"
+            #secrets:
+              #- get
+              #- list
+              #- set
+
+
+    - name: Get Key Vault by name for creating the Secret
+      azure_rm_keyvault_info:
+        resource_group:  rg-"{{userOrgName}}"  # Or, rg-"{{Projectname}}" i.e. one resource group for each appname in a particular organization
+        name: kv-rg-"{{userOrgName}}"  # Or, rg-"{{Projectname}}" i.e. one resource group for each appname in a particular organization
+      register: keyvault
+
+    - name: setting KeyVault uri fact
+      set_fact: keyvaulturi="{{ keyvault | json_query('keyvaults[0].vault_uri')}}"
+
+    - name: Create a secret with key as some publicKey and secret value as servicePrincipalName
+      azure_rm_keyvaultsecret:
+        secret_name: publicKey
+        secret_value: "servicePrincipalName"
+        keyvault_uri: "{{ keyvaulturi }}"
+
+    - name: Create a secret with key as servicePrincipalName & secret value as concat of - ClientID|ClientPassword|TenantID (being used by framework to run as Azure service principal) 
+      azure_rm_keyvaultsecret:
+        secret_name: "servicePrincipalName"
+        secret_value: "{{servicePrincipalTenantID}}|{{servicePrincipalClientID}}|{{servicePrincipalClientSecret}}|rg-"{{Projectname}}|{{servicePrincipalObjectId}}"
+        keyvault_uri: "{{ keyvaulturi }}"
+
+# Add a task here to make DBMethod/ API call to store a row in azureMappingsVault table with dataset -> SPname, projectName, orgname, clientid, clientsecret, tenantid, objectid, resourcegroupname 

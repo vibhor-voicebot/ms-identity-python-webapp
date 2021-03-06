@@ -1,0 +1,111 @@
+---
+
+- hosts: localhost
+
+  tasks:
+
+  # 1st task to be placed here is to read Org name, Project/Application name, other devops action details from UI (passed as --extra-vars to this playbook) where project/appname can be used as a PublicKey. Imp point here is this Playbook will be called from Python app.py API webmethod (say /startup) which will run azurelogin.sh script that will open the az login interactively on Browser and once user logs in then response from python subprocess will collect username, orgname and then render_html 2nd page that will take user inputs (like project/appname, what action they need to do etc.)  & autopopulates the orgname (captured in 1st subprocess call of azurelogin script). Once submit from 2nd page is done then This playbook will be called with orgname, project/appname etc as --extra-vars
+  # This PublicKey will be used to search in Azure MySQL DB/Table=azureMappingVault as if it exists or not. 
+  # If yes, then pull the associated ServicePrincipalName, ClientID, TenantID, ObjectID & Secret. For One project/appname = Only One ServicePrincipal ids & secret will be generated (by admin). 
+  # If project/appname doesn't exist then send mail to genpact Admin user (in next task) asking to login to Onboarding OneUI & create/provision ServicePrincipals, Secrets for that project/appname/team that will trigger adminuser playbook which will save projectname/appname, SP, ClientID, ClientSecret, TenantID, ObjectID, OrgName, resourcegroupname in DB & Vault respectively. After snding mail from next task terminate the playbook using When condition & let user know to contact Admin user for onboarding formalities 
+  # If projectname/appname was found in Azure DB, then pull the secrets, SP name etc. to login as SP for framework to proceed with DevOps OOB provisioning tasks. This can be done by calling remoteCall API that will take care of signing in as SP & thereafter trigger the DevOps tasks as per inputs by User taken or passed to this playbook as --extra-vars 
+
+
+  - name: Framework is trying to login with ServicePrincipalName on behalf of the Customer
+    shell: "echo az login --service-principal --username {{ clientID | default('') }} --password {{ clientSecret | default('') }} --tenant {{ tenantID | default('') }}"
+    register: servicePrincipalLoginOut
+  - debug: var=servicePrincipalLoginOut.stdout
+
+
+  - name: Good to add Azure DevOps extension(or, upgrade if already added)
+    shell: "az extension add --upgrade -n azure-devops"
+    register: azureDevOpsExtOut
+  - debug: var=azureDevOpsExtOut.stdout
+
+
+  - name: Login to Azure DevOps using Org's PAT tokens
+    shell: "echo -n {{ pat | default('') }} | az devops login --organization https://dev.azure.com/{{ devopsOrgName | default('') }}"
+    register: azureDevOpsPATLoginOut
+  - debug: var=azureDevOpsPATLoginOut.stdout
+
+ 
+  #- name: Configure defaults to set the configuration for the organization and project
+    #shell: "az devops project show --project {{ devopsProject | default('') }}"
+    #register: azureDevOpsProjectCheckOut
+  #- debug: var=azureDevOpsProjectCheckOut
+
+
+  # To be run if output of above task is not "TF200016: The following project does not exist" in azureDevOpsProjectCheckOut.stdout variable
+  - name: Creating DevOps project on Azure DevOps Server
+    shell: "az devops project create --name {{ devopsProject | default('') }}"
+    register: azureDevOpsProjectCreateOut
+    #when: ("ERROR" in azureDevOpsProjectCheckOut.stderr)
+  - debug: var=azureDevOpsProjectCreateOut.stdout
+
+  - name: Configure defaults to set the configuration for the organization and project
+    shell: "az devops configure --defaults organization=https://dev.azure.com/{{ devopsOrgName | default('') }} project={{ devopsProject | default('') }}"
+    register: devopsConfigureOut
+  - debug: var=devopsConfigureOut.stdout
+
+
+  # To be run if devops action is to create a pipeline
+  - name: Configure defaults to set the configuration for the organization and project
+    shell: "export AZURE_DEVOPS_EXT_GITHUB_PAT=7c2666ac91691263b662cb225c2d741456f7eeff && az devops service-endpoint github create --github-url {{ Repository | default('') }} --name \"GitHubServiceConnection\" | grep -A 2 -i 'groupScopeId' | grep \"id\" |  sed 's/\"id\": //g' | sed 's/\"//g' | sed 's/,//g' | sed 's/^ *//g'"
+    register: GitHubServiceConnectionIDOut
+  - debug: var=GitHubServiceConnectionIDOut.stdout
+
+ 
+  - set_fact: GitHubServiceConnectionIDGlobal = "{{ GitHubServiceConnectionIDOut.stdout }}"   
+    register: GitHubServiceConnectionIDGlobal
+
+  # To be triggered if Pipeline needs to be setup/created (for dotnetcore application)
+  - name: Create the automated Azure DevOps pipeline by referencing the azure-pipelines.yml
+    shell: "az pipelines create --name {{ devopsProject | default('') }}.CI --description 'Pipeline setup for the .Net project' --repository {{ Repository | default('') }} --branch master --yml-path azure-pipelines.yml --service-connection {{ GitHubServiceConnectionIDOut.stdout }}"
+    register: createDotNetCorePipelineOut
+    when: ( ProjectStack == "dotnetcore")
+  - debug: var=createDotNetCorePipelineOut.stdout
+
+
+  # To be triggered if Pipeline needs to be setup/created (for Java application)
+  - name: Create the automated Azure DevOps pipeline by referencing the azure-pipelines.yml
+    shell: "az pipelines create --name {{ devopsProject | default('') }}.CI --description 'Pipeline setup for the Java project' --repository {{ Repository | default('') }} --branch master --yml-path azure-pipelines.yml --service-connection {{ GitHubServiceConnectionIDOut.stdout }}"
+    register: createJavaPipelineOut
+    when: ( ProjectStack == "java")
+  - debug: var=createJavaPipelineOut.stdout
+
+
+  # To be triggered if Pipeline needs to be setup/created (for Python application)
+  - name: Create the automated Azure DevOps pipeline by referencing the azure-pipelines.yml
+    shell: "az pipelines create --name {{ devopsProject | default('') }}.CI --description 'Pipeline setup for the Python project' --repository {{ Repository | default('') }} --branch master --yml-path azure-pipelines.yml --service-connection {{ GitHubServiceConnectionIDOut.stdout }}"
+    register: createPythonPipelineOut
+    when: ( ProjectStack == "python")
+  - debug: var=createPythonPipelineOut.stdout
+
+
+  #- name: Calling Windows Service based API
+    #uri:
+      #url: http://ixpf1aefej:5000/remoteCall
+      #method: POST
+      #body_format: json
+      #validate_certs: no
+      #HEADER_Content-Type: "application/json"
+      #return_content: yes
+      #body: {"input1": "{{input1}}","input2": "{{input2}}", "AZURE_SUBSCRIPTION_ID": "aa11bb33-cc77-dd88-ee99-0918273645aa", "AZURE_TENANT_ID": "00112233-7777-8888-9999-aabbccddeeff", "AZURE_CLIENT_ID": "12345678-1111-2222-3333-1234567890ab", "AZURE_CLIENT_SECRET": "abcdef00-4444-5555-6666-1234567890ab", "REPO_URL": "https://github.com/vibhor-voicebot/pipelines-dotnet-core"}
+      #body:
+        #auth_user: test
+        #auth_pwd: test
+      #json_data:
+        #operation: "core/get"
+        #class: "class"
+        #key: "someid"
+    #register: APIJSONOut
+  #- debug: var=APIJSONOut
+
+  #- set_fact: descriptionOutput="{{APIJSONOut.json.tasks.description}}"
+    #register: descriptionOutput
+
+
+  #- name: Printing description from API output
+    #shell: echo "{{descriptionOutput}}"
+    #register: descOut
+  #- debug: var=descOut.stdout

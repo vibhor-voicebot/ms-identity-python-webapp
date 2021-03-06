@@ -1,0 +1,35 @@
+---
+- hosts: localhost
+  connection: local
+  vars:
+    vaultName: kv-rg-"{{userOrgName}}"
+    vaultSecretName: "{{publicKey}}"
+  tasks:
+    - name: getting 1st secret i.e. servicePrincipalname by passing vaultName and secretvaultName as inputs
+      shell: az keyvault secret show --name "{{ vaultSecretName }}" --vault-name "{{ vaultName }}" --query value -o tsv
+      register: resultValue
+    - debug:
+        msg: "{{ resultValue.stdout }}"
+
+    - set_fact: servicePrincipalName="{{ resultValue.stdout }}"
+
+    - name: getting 2nd secret i.e. servicePrincipal secret ids by passing servicePrincipalName as secretName now
+      shell: az keyvault secret show --name "{{ servicePrincipalName }}" --vault-name "{{ vaultName }}" --query value -o tsv
+      register: resultSecretsValue
+
+    - set_fact: servicePrincipalConcatanedSecret="{{ resultSecretsValue.stdout }}"
+
+    - name: Pulling clientID
+      shell: "echo {{servicePrincipalConcatanedSecret}} | awk -F"|" '{print $2}'
+      register: resultClientID
+
+    - name: Pulling clientSecret
+      shell: "echo {{servicePrincipalConcatanedSecret}} | awk -F"|" '{print $1}'
+      register: resultSecret
+
+    - name: Pulling applicationID/TenantID
+      shell: "echo {{servicePrincipalConcatanedSecret}} | awk -F"|" '{print $3}'
+      register: resultAppID
+
+
+

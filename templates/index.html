@@ -1,23 +1,153 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <title> Azure Onboarding Automation Framework </title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            $('#myModal').modal('hide');
+            //$('#button').click(function(){
+            //$('#txt1').val("Button clicked");
+            //  alert("Button clicked!!");
+            //});
+
+            $('#DevOpsPipelineActions').on('change', function () {
+                //alert( this.value );
+
+                if ("CreatePipeline" == this.value) {
+
+                    $('#PipelineName').show();
+                    $('#ProjectStack').show();
+                    $('#Repository').show();
+
+                }
+
+                if ("RunPipeline" == this.value) {
+
+                    $('#PipelineName').show();
+                    $('#ProjectStack').hide();
+                    $('#Repository').hide();
+
+                }
+
+                if ("" == this.value) {
+
+                    $('#PipelineName').hide();
+                    $('#ProjectStack').hide();
+                    $('#Repository').hide();
+
+                }
+
+            });
+
+            DevOpsPipelineActionsVal = $("#DevOpsPipelineActions").val();
+            if ("CreatePipeline" == DevOpsPipelineActionsVal) {
+
+                $('#PipelineName').show();
+                $('#ProjectStack').show();
+                $('#Repository').show();
+
+            }
+
+            if ("RunPipeline" == DevOpsPipelineActionsVal) {
+
+                $('#PipelineName').show();
+                $('#ProjectStack').hide();
+                $('#Repository').hide();
+
+            }
+
+            if ("" == DevOpsPipelineActionsVal) {
+
+                $('#PipelineName').hide();
+                $('#ProjectStack').hide();
+                $('#Repository').hide();
+
+            }
+
+            var ansibleOutputVar = $("#hidden").val();
+            if ("" != ansibleOutputVar) {
+                $('#myModal').modal('show');
+            }
+            else {
+                $('#myModal').modal('hide');
+            }
+
+        });
+    </script>
+
 </head>
 <body>
-    <h1>Microsoft Identity Python Web App</h1>
-    <h2>Welcome {{ user.get("name") }}!</h2>
+    </br></br>
+    <div align="center">
+        <div align="center" class="border">
 
-    {% if config.get("ENDPOINT") %}
-      <li><a href='/graphcall'>Call Microsoft Graph API</a></li>
-    {% endif %}
+            <div class="header">
+                <h4 class="word">Welcome {{ user.get("name") }}!</h4>
+            </div></br></br>
+            <h4 class="word">
+                <form action="{{ url_for('startup') }}" method="post">
+                    <div class="msg">{{ msg }}</div></br>
 
-    {% if config.get("B2C_PROFILE_AUTHORITY") %}
-      <li><a href='{{_build_auth_code_flow(authority=config["B2C_PROFILE_AUTHORITY"])["auth_uri"]}}'>Edit Profile</a></li>
-    {% endif %}
+                    <input id="ProjectName" name="ProjectName" type="text" placeholder="Enter Your Project Name" class="textbox" /></br></br>
+                    <input id="User" name="User" type="text" readonly="readonly" value={{ user.get("name") }} class="textbox" /></br></br>
+                    <input id="Organization" name="Organization" type="text" readonly="readonly" value={{ organization }} class="textbox" /></br></br>
 
-    <li><a href="/logout">Logout</a></li>
-    <hr>
-    <footer style="text-align: right">Powered by MSAL Python {{ version }}</footer>
+                    <select id="DevOpsPipelineActions" name="DevOpsPipelineActions" class="textbox">
+                        <option value="" selected>Choose DevOps Action</option>
+                        <option value="CreatePipeline">Create Pipeline</option>
+                        <option value="RunPipeline">Run Pipeline</option>
+                        <option value="DeletePipeline">Delete Pipeline</option>
+                        <option value="UpdatePipeline">Update Pipeline</option>
+                    </select></br></br>
+                    <input id="PipelineName" name="PipelineName" type="text" placeholder="Enter DevOps Pipeline Name" class="textbox" /></br></br>
+
+                    <select id="ProjectStack" name="ProjectStack" label="Choose Project Stack" class="textbox">
+                        <option value="" selected>Choose Project Stack</option>
+                        <option value="DotNetCore">.Net Core</option>
+                        <option value="Java">Java</option>
+                        <option value="Python">Python</option>
+                    </select></br></br>
+
+                    <input id="Repository" name="Repository" type="text" placeholder="Enter Repo Url" class="textbox" /></br></br>
+                    <input type="submit" class="btn" value="Submit Request!">
+                </form>
+            </h4>
+
+            <div class="modal fade" id="myModal" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">
+                                <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                            </button>
+                            <h4 class="modal-title" id="myModalLabel">DevOps Action Debug Logs</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class='modal-body1'>
+                                <input type="hidden" id="hidden" name="hidden" value={{ ansibleOutput }} />
+                                {{ ansibleOutput }}
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+                <li><a href="/logout">Logout</a></li>
+                <hr>
+                <footer style="text-align: right">Powered by Genpact Microsoft CoE</footer>
+
+            </div>
+        </div>
+
 </body>
 </html>
 

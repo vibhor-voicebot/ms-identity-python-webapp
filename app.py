@@ -46,10 +46,6 @@ app = Flask(__name__)
 app.config.from_object(app_config)
 Session(app)
 
-# This section is needed for url_for("foo", _external=True) to automatically
-# generate http scheme when this sample is running on localhost,
-# and to generate https scheme when it is deployed behind reversed proxy.
-# See also https://flask.palletsprojects.com/en/1.0.x/deploying/wsgi-standalone/#proxy-setups
 from werkzeug.middleware.proxy_fix import ProxyFix
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
@@ -57,7 +53,10 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 def index():
     if not session.get("user"):
         return redirect(url_for("login"))
-    return render_template('index.html', user=session["user"], version=msal.__version__)
+    print ("Printing the User details from Session ++++++++++++++++++")
+    user=session["user"]
+    print (user)
+    return render_template('index.html', user=session["user"], organization="", ansibleOutput="", version=msal.__version__)
 
 @app.route("/login")
 def login():
@@ -74,7 +73,7 @@ def authorized():
             session.get("flow", {}), request.args)
         if "error" in result:
             return render_template("auth_error.html", result=result)
-        session["user"] = result.get("id_token_claims")
+        session["user"] = result.get("id_token_claims") 
         _save_cache(cache)
     except ValueError:  # Usually caused by CSRF
         pass  # Simply ignore them
@@ -97,6 +96,63 @@ def graphcall():
         headers={'Authorization': 'Bearer ' + token['access_token']},
         ).json()
     return render_template('display.html', result=graph_data)
+
+
+@app.route('/startup', methods =['GET', 'POST'])
+def startup():
+    msg = ''
+
+    if not session.get("user"):
+        return redirect(url_for("login"))
+     
+    if request.method == 'POST' and 'ProjectName' in request.form and 'Organization' in request.form:
+        orgName = request.form['Organization'] or ""
+        projName = request.form['ProjectName'] or ""
+        username = request.form['User'] or ""
+        DevOpsPipelineActions = request.form['DevOpsPipelineActions'] or ""
+        PipelineName = request.form['PipelineName'] or ""
+        ProjectStack = str(request.form['ProjectStack']).lower() or ""
+        Repository = request.form['Repository'] or ""
+        servicePrincipalName = "GenpactForOUs-WmPrivateCloud-SP"
+        clientID = "12345678-1111-2222-3333-1234567890ab"
+        clientSecret = "abcdef00-4444-5555-6666-1234567890ab"
+        tenantID = "00112233-7777-8888-9999-aabbccddeeff"
+        objectID = "aa11bb33-cc77-dd88-ee99-0918273645aa"
+        resourceGroupName = "rg-WMPrivateCloud"
+        devopsOrgName = "GenpactForOUs"
+        devopsProject = projName
+        pat = "gnzy62ecu4idcsa7y4ho2hrqokoihrid66pcz6fghp6kobc4wr6a"
+        msg = orgName+' | '+projName
+
+        #conn = pymysql.connect(user='myadmin@ansibledemoserver', password='Feb@2021', host='ansibledemoserver.mysql.database.azure.com', database='defaultdb', ssl= {'ssl': {'ca': '/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt'}})
+        #Creating a cursor object using the cursor() method
+        #cursor = conn.cursor()
+        #cursor.execute('SELECT * FROM ClientsMappingVault WHERE orgName = {} AND projectName = {}').format(orgName, projName)
+        print ("Checking for Service principals mapping in Azure MySQL table")
+        #print ('SELECT * FROM ClientsMappingVault WHERE orgName = {} AND projectName = {}')).format(orgName, projName)
+        print ('SELECT * FROM ClientsMappingVault WHERE orgName ='+orgName+' AND projectName ='+projName)
+        #result = cursor.fetchone()
+        #if result:
+            #servicePrincipalName = result['servicePrincipalName']
+            #clientID = result['clientID']
+            #clientSecret = result['clientSecret']
+            #tenantID = result['tenantID']
+            #objectID = result['objectID']
+            #resourceGroupName = result['resourceGroupName']
+            #devopsOrgName = result['devopsOrgName'] #this will be same as OrgName for now and will be saved in DB when admin user submits the onboarding operation + he has to additonally create devops org on dev.azure.com UI and generate PAT token which will make ajax call from onboarding webpage (psot submitting mapping details in DB) to save PAT against the row(s) with matching OrgName
+            #devopsProject = result['devopsProject'] # this will saved with same value as what ProjectName is saved when admin saves the details in DB along with Org & DevOps OrgName
+            #pat = result['PAT']
+
+        # Calling Ansible Playbook here that will login as ServicePrincipal credentials, then based on DevOps action type run the az create/update/run pipeline workflows
+        cmd = "ansible-playbook ./ansible_automation/azure_linux_playbook.yml -i ./ansible_automation/inventory/hosts -vv --extra-vars=\"orgName={orgName} projName={projName} username={username} DevOpsPipelineActions={DevOpsPipelineActions} PipelineName={PipelineName} ProjectStack={ProjectStack} Repository={Repository} servicePrincipalName={servicePrincipalName} clientID={clientID} clientSecret={clientSecret} tenantID={tenantID} objectID={objectID} resourceGroupName={resourceGroupName} devopsOrgName={devopsOrgName} devopsProject={devopsProject} pat={pat}\"".format(orgName=orgName,projName=projName,username=username,DevOpsPipelineActions=DevOpsPipelineActions,PipelineName=PipelineName,ProjectStack=ProjectStack,Repository=Repository,servicePrincipalName=servicePrincipalName,clientID=clientID,clientSecret=clientSecret,tenantID=tenantID,objectID=objectID,resourceGroupName=resourceGroupName, devopsOrgName=devopsOrgName, devopsProject=devopsProject, pat=pat)
+        print (cmd)
+        ansibleOut = subprocess.Popen(["bash", "-c", cmd],  stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        ansibleOutput = ansibleOut.stdout.read().decode("utf-8")
+        print (ansibleOutput)
+        return render_template('index.html', msg = msg, user=session["user"], ansibleOutput = ansibleOutput, organization=orgName, PipelineName=PipelineName, Repository=Repository)
+        #else:
+            #msg = 'Your project is not onboarded yet, please proceed with Sign-Up Workflow!'
+            #return render_template('index.html', msg = msg)
 
 
 @app.route("/azlogin")

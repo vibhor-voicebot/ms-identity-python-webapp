@@ -108,6 +108,7 @@ def startup():
         return redirect(url_for("login"))
      
     if request.method == 'POST' and 'ProjectName' in request.form and 'Organization' in request.form:
+      try:
         orgName = request.form['Organization'] or ""
         projName = request.form['ProjectName'] or ""
         username = request.form['User'] or ""
@@ -152,6 +153,9 @@ def startup():
         ansibleOutput = ansibleOut.stdout.read().decode("utf-8")
         print (ansibleOutput)
         return render_template('index.html', msg = msg, user=session["user"], ansibleOutput = ansibleOutput, organization=orgName, PipelineName=PipelineName, Repository=Repository)
+
+      except Exception as e:
+        return render_template('index.html', msg = msg, user=session["user"], ansibleOutput = str(e), organization=orgName, PipelineName=PipelineName, Repository=Repository)
         #else:
             #msg = 'Your project is not onboarded yet, please proceed with Sign-Up Workflow!'
             #return render_template('index.html', msg = msg)

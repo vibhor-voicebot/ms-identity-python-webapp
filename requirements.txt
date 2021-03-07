@@ -10,7 +10,7 @@ pywinrm>=0.3.0
 wheel
 cryptography
 pycrypto
-ansible==2.3.0
+ansible>=2.8.4
 mysql
 mysql-connector
 pymysql

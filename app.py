@@ -155,6 +155,10 @@ def startup():
         ansibleOut = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         ansibleOutput = ansibleOut.stdout.read()
         print (ansibleOutput)
+        if "Failed=0" in ansibleOutput :
+            msg = "Devops Pipeline -"+PipelineName+" is created for project -"+devopsProject
+        else :
+            msg = "Failed to create Devops Pipeline -"+PipelineName+" for project -"+devopsProject
         return render_template('index.html', msg = msg, user=session["user"], ansibleOutput = ansibleOutput, organization=orgName, PipelineName=PipelineName, Repository=Repository)
 
       except Exception as e:

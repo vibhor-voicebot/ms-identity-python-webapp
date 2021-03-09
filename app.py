@@ -155,7 +155,7 @@ def startup():
         ansibleOut = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         ansibleOutput = ansibleOut.stdout.read()
         print (ansibleOutput)
-        if "Failed=0" in ansibleOutput :
+        if "failed=0" in str(ansibleOutput) :
             msg = "Devops Pipeline -"+PipelineName+" is created for project -"+devopsProject
         else :
             msg = "Failed to create Devops Pipeline -"+PipelineName+" for project -"+devopsProject

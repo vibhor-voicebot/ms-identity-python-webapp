@@ -7,28 +7,33 @@
 
 </head>
 <body>
-                     <div align="center">
-                <div align="center" class="border">
-                        <div class="header">
-                                <h4><b>Azure DevOps Onboarding Automation Framework</b></h4>
-                        </div></br></br></br>
-                        <h3 class="word">
- <div class="msg">{{ msg }}</div>
+    </br></br>
+    <div align="center">
+        <div align="center" class="border">
+            <div class="header">
+                <h4 class="word">
+                    Azure DevOps Onboarding
+                    Framework
+                </h4>
+            </div></br></br></br>
+            <h3 class="word">
+                <div class="msg">{{ msg }}</div>
 
- <a href='{{ auth_url }}'>Sign In using Azure MSAL Identity</a>
+                <a href='{{ auth_url }}'>Sign In using Azure MSAL Identity</a>
 
-    {% if config.get("B2C_RESET_PASSWORD_AUTHORITY") %}
-    <li><a href='{{_build_auth_code_flow(authority=config["B2C_RESET_PASSWORD_AUTHORITY"])["auth_uri"]}}'>Reset Password</a></li>
-    {% endif %}
-</br></br>
-                            </h3>
-    <hr>
-    <footer style="text-align: right">Powered by Genpact Microsoft CoE</footer>
-                      
-                </div>
-                </div>
- 
-                            </body>
+                {% if config.get("B2C_RESET_PASSWORD_AUTHORITY") %}
+                <li>
+                    <a href='{{_build_auth_code_flow(authority=config["B2C_RESET_PASSWORD_AUTHORITY"])["auth_uri"]}}'>Reset Password</a>
+                </li>
+                {% endif %}
+                </br></br>
+            </h3>
+            <hr>
+            <footer style="text-align: right">Powered by Genpact Microsoft CoE</footer>
+
+        </div>
+    </div>
+
+</body>
 
 </html>
-

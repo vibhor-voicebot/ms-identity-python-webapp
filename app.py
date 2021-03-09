@@ -58,6 +58,7 @@ def index():
     organization = ""
     organization = str(str(str(user.get('preferred_username')).split("@")[1]).split(".com")[0])
     print (user)
+
     return render_template('index.html', user=session["user"], organization=organization, ansibleOutput="", version=msal.__version__)
 
 @app.route("/login")
@@ -76,15 +77,17 @@ def authorized():
         if "error" in result:
             return render_template("auth_error.html", result=result)
         session["user"] = result.get("id_token_claims") 
+        print ("Printing complete result object here +++++++++++++++++")
+        print (result)
         _save_cache(cache)
-    except ValueError:  # Usually caused by CSRF
+    except ValueError:   
         pass  # Simply ignore them
     return redirect(url_for("index"))
 
 @app.route("/logout")
 def logout():
     session.clear()  # Wipe out user and its token cache from session
-    return redirect(  # Also logout from your tenant's web session
+    return redirect(  # Also logout from tenant's web session
         app_config.AUTHORITY + "/oauth2/v2.0/logout" +
         "?post_logout_redirect_uri=" + url_for("index", _external=True))
 
@@ -149,8 +152,8 @@ def startup():
         # Calling Ansible Playbook here that will login as ServicePrincipal credentials, then based on DevOps action type run the az create/update/run pipeline workflows
         cmd = "ansible-playbook ./ansible_automation/azure_linux_playbook.yml -vv --extra-vars=\"orgName={orgName} projName={projName} username={username} DevOpsPipelineActions={DevOpsPipelineActions} PipelineName={PipelineName} ProjectStack={ProjectStack} Repository={Repository} servicePrincipalName={servicePrincipalName} clientID={clientID} clientSecret={clientSecret} tenantID={tenantID} objectID={objectID} resourceGroupName={resourceGroupName} devopsOrgName={devopsOrgName} devopsProject={devopsProject} pat={pat}\"".format(orgName=orgName,projName=projName,username=username,DevOpsPipelineActions=DevOpsPipelineActions,PipelineName=PipelineName,ProjectStack=ProjectStack,Repository=Repository,servicePrincipalName=servicePrincipalName,clientID=clientID,clientSecret=clientSecret,tenantID=tenantID,objectID=objectID,resourceGroupName=resourceGroupName, devopsOrgName=devopsOrgName, devopsProject=devopsProject, pat=pat)
         print (cmd)
-        ansibleOut = subprocess.Popen(["bash", "-c", cmd],  stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-        ansibleOutput = ansibleOut.stdout.read().decode("utf-8")
+        ansibleOut = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        ansibleOutput = ansibleOut.stdout.read()
         print (ansibleOutput)
         return render_template('index.html', msg = msg, user=session["user"], ansibleOutput = ansibleOutput, organization=orgName, PipelineName=PipelineName, Repository=Repository)
 

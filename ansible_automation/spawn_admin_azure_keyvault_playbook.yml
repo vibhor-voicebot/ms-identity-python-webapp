@@ -3,8 +3,6 @@
   gather_facts: false
   connection: local
   tasks:
-    - name: Azure login for creating Service Principles
-      shell: az login
 
     - name: Creating Service Principles
       shell: az ad sp create-for-rbac --name "{{servicePrincipalName}}" --skip-assignment --sdk-auth #where Sp name can be in form of "{{OrgName}}"-"{{ProjectName}}"
@@ -28,12 +26,12 @@
 
     - name: Create resource group
       azure_rm_resourcegroup:
-        name: rg-"{{userOrgName}}"  # Or, rg-"{{Projectname}}" i.e. one resource group for each appname in a particular organization
+        name: rg-"{{ProjectName}}"  # Or, rg-"{{Projectname}}" i.e. one resource group for each appname in a particular organization
         location: eastus
     - name: Create Azure Key Vault
       azure_rm_keyvault:
-        resource_group: rg-"{{userOrgName}}"  # Or, rg-"{{Projectname}}" i.e. one resource group for each appname in a particular organization
-        vault_name: kv-rg-"{{userOrgName}}"  # Or, rg-"{{Projectname}}" i.e. one resource group for each appname in a particular organization
+        resource_group: rg-"{{ProjectName}}"  # Or, rg-"{{Projectname}}" i.e. one resource group for each appname in a particular organization
+        vault_name: kv-rg-"{{ProjectName}}"  # Or, rg-"{{Projectname}}" i.e. one resource group for each appname in a particular organization
         vault_tenant: "{{servicePrincipalTenantID}}"
         enabled_for_deployment: yes
         sku:
@@ -45,18 +43,11 @@
               - get
               - list
               - set
-          #- tenant_id: "{{userIdentityTenantID}}"
-            #object_id: "{{userIdentityObjectId}}"
-            #secrets:
-              #- get
-              #- list
-              #- set
-
 
     - name: Get Key Vault by name for creating the Secret
       azure_rm_keyvault_info:
-        resource_group:  rg-"{{userOrgName}}"  # Or, rg-"{{Projectname}}" i.e. one resource group for each appname in a particular organization
-        name: kv-rg-"{{userOrgName}}"  # Or, rg-"{{Projectname}}" i.e. one resource group for each appname in a particular organization
+        resource_group:  rg-"{{ProjectName}}"  # Or, rg-"{{Projectname}}" i.e. one resource group for each appname in a particular organization
+        name: kv-rg-"{{ProjectName}}"  # Or, rg-"{{Projectname}}" i.e. one resource group for each appname in a particular organization
       register: keyvault
 
     - name: setting KeyVault uri fact
@@ -71,7 +62,33 @@
     - name: Create a secret with key as servicePrincipalName & secret value as concat of - ClientID|ClientPassword|TenantID (being used by framework to run as Azure service principal) 
       azure_rm_keyvaultsecret:
         secret_name: "servicePrincipalName"
-        secret_value: "{{servicePrincipalTenantID}}|{{servicePrincipalClientID}}|{{servicePrincipalClientSecret}}|rg-"{{Projectname}}|{{servicePrincipalObjectId}}"
+        secret_value: "{{servicePrincipalTenantID}}|{{servicePrincipalClientID}}|{{servicePrincipalClientSecret}}|rg-{{ProjectName}}|{{servicePrincipalObjectId}}|{{DevOpsOrg}}|{{pat}}"
         keyvault_uri: "{{ keyvaulturi }}"
 
-# Add a task here to make DBMethod/ API call to store a row in azureMappingsVault table with dataset -> SPname, projectName, orgname, clientid, clientsecret, tenantid, objectid, resourcegroupname 
+# Making DBAdapter WebService call to store a row in ClientMappingsVault Azure MySQL Table with dataset -> SPname, projectName, orgname, clientid, clientsecret, tenantid, objectid, resourcegroupname, devops orgname & PAT 
+    - name: Calling Windows Service based API
+      uri:
+        url: https://azureonboardinggui.scm.azurewebsites.net/remoteCall
+        method: POST
+        body_format: json
+        validate_certs: no
+        HEADER_Content-Type: "application/json"
+        return_content: yes
+        body: {"DevOpsOrg": "{{DevOpsOrg}}","PAT": "{{pat}}", "servicePrincipalName": "{{servicePrincipalName}}", "servicePrincipalTenantID": "{{servicePrincipalTenantID}}", "servicePrincipalClientSecret": "{{servicePrincipalClientSecret}}", "servicePrincipalObjectId": "{{servicePrincipalObjectId}}", "ResourceGroupName": "rg-{{ProjectName}}"}
+        #body:
+          #auth_user: test
+          #auth_pwd: test
+        json_data:
+          operation: "core/get"
+          class: "class"
+          key: "someid"
+      register: APIJSONOut
+    - debug: var=APIJSONOut
+
+    - set_fact: descriptionOutput="{{APIJSONOut.json.tasks.description}}"
+      register: descriptionOutput
+
+    - name: Printing description from API output
+      shell: echo "{{descriptionOutput}}"
+      register: descOut
+    - debug: var=descOut.stdout

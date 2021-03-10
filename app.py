@@ -40,6 +40,8 @@ import subprocess
 #Use the get_client_from_auth_file method to create the client object:
 from azure.common.client_factory import get_client_from_auth_file
 from azure.mgmt.resource import SubscriptionClient
+import sys, yaml
+from flask import send_file, send_from_directory, safe_join, abort, Response
 
 
 app = Flask(__name__)
@@ -168,14 +170,24 @@ def startup():
             #return render_template('index.html', msg = msg)
 
 
-@app.route("/azlogin")
-def azlogin():
-    cmd = "az login"
-    loginJSON = subprocess.Popen(["bash", "-c", cmd],  stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    tmpOut = ""
-    tmpOut = loginJSON.stdout.read().strip().decode("utf-8")
-    print (tmpOut)
-    return str(tmpOut)
+@app.route("/generateAzurePipelineTemplate")
+def generateAzurePipelineTemplate() :
+    data = ""
+    if request.args.get("projType") == "dotnetcore" :
+        with open('./azurePipelinesTemplates/azure-pipelines-dotnetcore.yml', 'r') as fh :
+            data = yaml.safe_load(fh)
+
+    if request.args.get("projType") == "java" :
+        with open('./azurePipelinesTemplates/azure-pipelines-dotnetcore.yml', 'r') as fh :
+            data = yaml.safe_load(fh)
+
+    if request.args.get("projType") == "python" :
+        with open('./azurePipelinesTemplates/azure-pipelines-dotnetcore.yml', 'r') as fh :
+            data = yaml.safe_load(fh)
+
+    ydump = yaml.safe_dump(data, default_flow_style=False, sort_keys=False)
+    return Response(ydump, mimetype='text/plain')
+
 
 
 

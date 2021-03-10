@@ -80,3 +80,10 @@
     register: createPythonPipelineOut
     when: ( ProjectStack == "python")
   - debug: var=createPythonPipelineOut.stdout
+
+
+  - name: Create Azure Boards with Work Item as task to configure associated Boards for changes tracking
+    shell: "az boards work-item create --title 'Testing work item as task type' --type 'Task' --description 'Sample Description'  | grep 'url' | grep 'workItems' | sed 's/://g' | sed 's/url//g' | sed 's/\"//g' | sed 's/$ *//g'"
+    register: createBoardsOut
+  - debug: var=createBoardsOut.stdout
+   

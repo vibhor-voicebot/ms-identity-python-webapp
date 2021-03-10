@@ -12,6 +12,7 @@ cryptography
 pycrypto
 ansible>=2.8.4
 mysql
+pyyaml
 mysql-connector
 pymysql
 azure.cli

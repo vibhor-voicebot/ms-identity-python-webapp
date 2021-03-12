@@ -50,7 +50,7 @@
 
   # To be run if devops action is to create a pipeline
   - name: Configure defaults to set the configuration for the organization and project
-    shell: "export AZURE_DEVOPS_EXT_GITHUB_PAT=d73c4c3febbd2fa9a938515239b7b094cef4fa68a && az devops service-endpoint github create --github-url {{ Repository | default('') }} --name \"GitHubServiceConnection\" | grep -A 2 -i 'groupScopeId' | grep \"id\" |  sed 's/\"id\": //g' | sed 's/\"//g' | sed 's/,//g' | sed 's/^ *//g'"
+    shell: "export AZURE_DEVOPS_EXT_GITHUB_PAT=d73c4c3febbd2fa9a938515239b7b094cef4fa68aa && az devops service-endpoint github create --github-url {{ Repository | default('') }} --name \"GitHubServiceConnection\" | grep -A 2 -i 'groupScopeId' | grep \"id\" |  sed 's/\"id\": //g' | sed 's/\"//g' | sed 's/,//g' | sed 's/^ *//g'"
     register: GitHubServiceConnectionIDOut
   - debug: var=GitHubServiceConnectionIDOut.stdout
 

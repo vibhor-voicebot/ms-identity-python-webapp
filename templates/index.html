@@ -1,78 +1,23 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title> Azure Onboarding Automation Framework </title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Azure DevOps Onboarding Automation Framework (One-CLick Solution)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
-
-
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_design.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        $(function () {
+            $('.toggle-overlay').click(function () {
+                $('aside').toggleClass('open');
+            })
+        })
+    </script>
     <style>
-        body {
-            font-family: 'Lato', sans-serif;
-        }
-
-        .overlay {
-            height: 100%;
-            width: 0;
-            position: fixed;
-            z-index: 1;
-            top: 0;
-            left: 0;
-            background-color: rgb(0,0,0);
-            background-color: rgba(0,0,0, 0.9);
-            overflow-x: hidden;
-            transition: 0.5s;
-        }
-
-        .overlay-content {
-            position: relative;
-            top: 2%;
-            width: 100%;
-            text-align: center;
-            margin-top: 3px;
-        }
-
-
-        .overlay a {
-            padding: 8px;
-            text-decoration: none;
-            font-size: 30px;
-            color: #818181;
-            display: block;
-            transition: 0.3s;
-        }
-
-            .overlay a:hover, .overlay a:focus {
-                color: #f1f1f1;
-            }
-
-        .overlay .closebtn {
-            position: absolute;
-            top: 20px;
-            right: 45px;
-            font-size: 60px;
-        }
-
-        @media screen and (max-height: 450px) {
-            .overlay a {
-                font-size: 20px
-            }
-
-            .overlay .closebtn {
-                font-size: 40px;
-                top: 15px;
-                right: 35px;
-            }
-        }
-
-
-        #img {
+        #img1 {
             display: none;
             position: fixed;
             top: 50;
@@ -81,96 +26,141 @@
             width: 100%;
             height: 100%;
         }
-    </style>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+        #img2 {
+            display: none;
+            position: fixed;
+            top: 50;
+            left: 0;
+            //background: #fff;
+            width: 100%;
+            height: 100%;
+        }
+
+        #img3 {
+            display: none;
+            position: fixed;
+            top: 50;
+            left: 0;
+            //background: #fff;
+            width: 100%;
+            height: 100%;
+        }
+
+        #img4 {
+            display: none;
+            position: fixed;
+            top: 50;
+            left: 0;
+            //background: #fff;
+            width: 100%;
+            height: 100%;
+        }
+
+
+
+
+        nav ul li {
+            -webkit-box-align: center !important;
+            align-items: center !important;
+            -webkit-box-flex: 1 !important;
+            flex: 1 !important;
+            line-height: 20vh !important;
+        }
+
+            nav ul li a {
+                font-size: 1.5em !important;
+                -webkit-transition: all 0.5s ease !important;
+                transition: all 0.5s ease !important;
+                display: block !important;
+                text-decoration: none !important;
+                color: rgba(255,255,255,0.5) !important;
+            }
+
+                nav ul li a:hover {
+                    color: rgba(255,255,255,0.9) !important;
+                    -webkit-transform: scale(1.1) !important;
+                    transform: scale(1.1) !important;
+                }
+
+                    nav ul li a:hover:before {
+                        visibility: visible !important;
+                        -webkit-transform: scaleX(1) !important;
+                        transform: scaleX(1) !important;
+                    }
+
+                nav ul li a:before {
+                    content: '' !important;
+                    position: absolute !important;
+                    width: 50% !important;
+                    height: 2px !important;
+                    bottom: 0 !important;
+                    left: 25% !important;
+                    background: white !important;
+                    visibility: hidden !important;
+                    -webkit-transform: scaleX(0) !important;
+                    transform: scaleX(0) !important;
+                    -webkit-transition: all 0.3s ease-in-out 0s !important;
+                    transition: all 0.3s ease-in-out 0s !important;
+                }
+    </style>
 
     <script type="text/javascript">
         $(document).ready(function () {
-            document.getElementById("myNav").style.width = "100%";
-            $('#myNav').show();
-            $("#img").css({ opacity: 1.0 });
-            $('#myModal').modal('hide');
-            $('#img').hide();
-            //$('#button').click(function(){
-            //$('#txt1').val("Button clicked");
-            //  alert("Button clicked!!");
 
-            $('#DevOpsPipelineActions').on('change', function () {
-                //alert( this.value );
-
-                if ("CreatePipeline" == this.value) {
-
-                    $('#PipelineName').show();
-                    $('#ProjectStack').show();
-                    $('#Repository').show();
-                    $('#pipeline').show();
-                }
-
-                if ("RunPipeline" == this.value) {
-
-                    $('#PipelineName').show();
-                    $('#ProjectStack').hide();
-                    $('#Repository').hide();
-                    $('#pipeline').show();
-                }
-
-                if ("" == this.value) {
-
-                    $('#PipelineName').hide();
-                    $('#ProjectStack').hide();
-                    $('#Repository').hide();
-                    $('#pipeline').hide();
-                }
+            $("#img1").css({ opacity: 1.0 });
+            $("#img2").css({ opacity: 1.0 });
+            $("#img3").css({ opacity: 1.0 });
+            $("#img4").css({ opacity: 1.0 });
+            $('#myModal_createpipeline').modal('hide');
+            $('#myModal_runpipeline').modal('hide');
+            $('#myModal_updatepipeline').modal('hide');
+            $('#myModal_deletepipeline').modal('hide');
+            $('#img1').hide();
+            $('#img2').hide();
+            $('#img3').hide();
+            $('#img4').hide();
+            $("#createpipeline").click(function () {
+                document.getElementById("containermsg1").innerHTML = "";
+                $('#myModal_createpipeline').modal('show');
+                $('#myModal_runpipeline').modal('hide');
+                $('#myModal_updatepipeline').modal('hide');
+                $('#myModal_deletepipeline').modal('hide');
 
             });
 
-            DevOpsPipelineActionsVal = $("#DevOpsPipelineActions").val();
-            if ("CreatePipeline" == DevOpsPipelineActionsVal) {
 
-                $('#PipelineName').show();
-                $('#ProjectStack').show();
-                $('#Repository').show();
-                $('#pipeline').show();
+            $("#runpipeline").click(function () {
+                document.getElementById("containermsg2").innerHTML = "";
+                $('#myModal_runpipeline').modal('show');
+                $('#myModal_createpipeline').modal('hide');
+                $('#myModal_updatepipeline').modal('hide');
+                $('#myModal_deletepipeline').modal('hide');
 
-            }
-
-            if ("RunPipeline" == DevOpsPipelineActionsVal) {
-
-                $('#PipelineName').show();
-                $('#ProjectStack').hide();
-                $('#Repository').hide();
-                $('#pipeline').show();
-            }
-
-            if ("" == DevOpsPipelineActionsVal) {
-
-                $('#PipelineName').hide();
-                $('#ProjectStack').hide();
-                $('#Repository').hide();
-                $('#pipeline').hide();
-            }
+            });
 
 
-            var ansibleOutputVar = $("#hidden").val();
-            if ("" == ansibleOutputVar || " " == ansibleOutputVar || "\/" == ansibleOutputVar || "\\" == ansibleOutputVar) {
-                $('#myModal').modal('hide');
-            }
-            else {
-                $('#myModal').modal('show');
-            }
+            $("#updatepipeline").click(function () {
+                document.getElementById("containermsg3").innerHTML = "";
+                $('#myModal_updatepipeline').modal('show');
+                $('#myModal_runpipeline').modal('hide');
+                $('#myModal_createpipeline').modal('hide');
+                $('#myModal_deletepipeline').modal('hide');
+
+            });
 
 
-            $("#btnclick").click(function () {
+            $("#deletepipeline").click(function () {
+                document.getElementById("containermsg4").innerHTML = "";
+                $('#myModal_deletepipeline').modal('show');
+                $('#myModal_runpipeline').modal('hide');
+                $('#myModal_updatepipeline').modal('hide');
+                $('#myModal_createpipeline').modal('hide');
 
-                //  e.preventDefault();
-
-                //$('#img').show();
-
-                //$("#form1").submit();//{
+            });
 
 
+            $("#btnclick1").click(function () {
 
                 //$('#form1').submit(function() {
                 var res = true;
@@ -178,137 +168,448 @@
                     if ($(this).val().trim() == "" || $(this).val() == "None" || $(this).val() == "none") {
                         res = false;
                         var nameval = $(this).attr('name');
-                        document.getElementById("containermsg").innerHTML = nameval + " is empty, need a value";
+                        document.getElementById("containermsg1").innerHTML = nameval + " is empty, need a value";
                         return false;
                     }
                 });
 
                 if (res) {
-                    $("#form1").submit();
+                    var str = $("#form1").serialize();
+                    $.ajax({
+                        url: '/startup',
+                        type: 'POST',
+                        data: str,
+                        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                        beforeSend: function () {
+                            // show the preloader (progress bar)
+                            $('#img1').show();
+                        },
+                        complete: function () {
+                            // hide the preloader (progress bar)
+                            $('#img1').hide();
+                        },
+                        success: function (data) {
+                            document.getElementById("containermsg1").innerHTML = data.msg;
+                            console.log("details of ansible playbook for create pipeline is below");
+                            console.log(data.ansibleOutput);
+                        },
+                        error: function (xhr) {
+                            console.log("error. see details below.");
+                            console.log(xhr.status + ": " + xhr.responseText);
+                        },
+                    });
+
                 }
                 else {
                 }
 
 
             });
+
+
+            $("#btnclick2").click(function () {
+
+                //$('#form1').submit(function() {
+                var res = true;
+                $('#form2').find("input[type='text'],select").each(function () {
+                    if ($(this).val().trim() == "" || $(this).val() == "None" || $(this).val() == "none") {
+                        res = false;
+                        var nameval = $(this).attr('name');
+                        document.getElementById("containermsg2").innerHTML = nameval + " is empty, need a value";
+                        return false;
+                    }
+                });
+
+                if (res) {
+                    var str = $("#form2").serialize();
+                    $.ajax({
+                        url: '/startup',
+                        type: 'POST',
+                        data: str,
+                        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                        beforeSend: function () {
+                            // show the preloader (progress bar)
+                            $('#img2').show();
+                        },
+                        complete: function () {
+                            // hide the preloader (progress bar)
+                            $('#img2').hide();
+                        },
+                        success: function (data) {
+                            document.getElementById("containermsg2").innerHTML = data.msg;
+                            console.log("details of ansible playbook for create pipeline is below");
+                            console.log(data.ansibleOutput);
+                        },
+                        error: function (xhr) {
+                            console.log("error. see details below.");
+                            console.log(xhr.status + ": " + xhr.responseText);
+                        },
+                    });
+
+
+                }
+                else {
+                }
+
+
+            });
+
+
+            $("#btnclick3").click(function () {
+
+                //$('#form1').submit(function() {
+                var res = true;
+                $('#form3').find("input[type='text'],select").each(function () {
+                    if ($(this).val().trim() == "" || $(this).val() == "None" || $(this).val() == "none") {
+                        res = false;
+                        var nameval = $(this).attr('name');
+                        document.getElementById("containermsg3").innerHTML = nameval + " is empty, need a value";
+                        return false;
+                    }
+                });
+
+                if (res) {
+                    var str = $("#form3").serialize();
+                    $.ajax({
+                        url: '/startup',
+                        type: 'POST',
+                        data: str,
+                        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                        beforeSend: function () {
+                            // show the preloader (progress bar)
+                            $('#img3').show();
+                        },
+                        complete: function () {
+                            // hide the preloader (progress bar)
+                            $('#img3').hide();
+                        },
+                        success: function (data) {
+                            document.getElementById("containermsg3").innerHTML = data.msg;
+                            console.log("details of ansible playbook for create pipeline is below");
+                            console.log(data.ansibleOutput);
+                        },
+                        error: function (xhr) {
+                            console.log("error. see details below.");
+                            console.log(xhr.status + ": " + xhr.responseText);
+                        },
+                    });
+
+
+                }
+                else {
+                }
+
+
+            });
+
+
+            $("#btnclick4").click(function () {
+
+                //$('#form1').submit(function() {
+                var res = true;
+                $('#form4').find("input[type='text'],select").each(function () {
+                    if ($(this).val().trim() == "" || $(this).val() == "None" || $(this).val() == "none") {
+                        res = false;
+                        var nameval = $(this).attr('name');
+                        document.getElementById("containermsg4").innerHTML = nameval + " is empty, need a value";
+                        return false;
+                    }
+                });
+
+                if (res) {
+                    var str = $("#form4").serialize();
+                    $.ajax({
+                        url: '/startup',
+                        type: 'POST',
+                        data: str,
+                        contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                        beforeSend: function () {
+                            // show the preloader (progress bar)
+                            $('#img4').show();
+                        },
+                        complete: function () {
+                            // hide the preloader (progress bar)
+                            $('#img4').hide();
+                        },
+                        success: function (data) {
+                            document.getElementById("containermsg4").innerHTML = data.msg;
+                            console.log("details of ansible playbook for create pipeline is below");
+                            console.log(data.ansibleOutput);
+                        },
+                        error: function (xhr) {
+                            console.log("error. see details below.");
+                            console.log(xhr.status + ": " + xhr.responseText);
+                        },
+                    });
+
+
+                }
+                else {
+                }
+
+
+            });
+
+
         });
 
-
-        function openNav() {
-            document.getElementById("myNav").style.width = "100%";
-        }
-
-        function closeNav() {
-            document.getElementById("myNav").style.width = "0%";
-        }
     </script>
 
 </head>
 <body>
-    <div id="myNav" class="overlay">
-        <div class="overlay-content">
-            <a href="#">Azure DevOps Onboarding Automation Framework</a>
-            <!--  </div>-->
-            <!--</div>-->
-            <div align="center">
-                <div align="center" class="border">
-                    <div class="header">
-                        <h4 class="word">Welcome {{ user.get("name") }}!</h4>
-                    </div></br></br>
-                    <div id="img">
-                        <div class="windows8">
-                            <div class="wBall" id="wBall_1">
-                                <div class="wInnerBall"></div>
-                            </div>
-                            <div class="wBall" id="wBall_2">
-                                <div class="wInnerBall"></div>
-                            </div>
-                            <div class="wBall" id="wBall_3">
-                                <div class="wInnerBall"></div>
-                            </div>
-                            <div class="wBall" id="wBall_4">
-                                <div class="wInnerBall"></div>
-                            </div>
-                            <div class="wBall" id="wBall_5">
-                                <div class="wInnerBall"></div>
-                            </div>
+    <main>
+
+        <h1>Azure DevOps Onboarding Automation Framework</h1>
+        <h3>(One-Click Solution)</h3>
+        <button class="toggle-overlay">Menu</button>
+    </main>
+
+    <aside>
+        <div class="outer-close toggle-overlay">
+            <a href="/logout"><i class="fa fa-power-off close" style="font-size: 30px; padding: 8px;"></i><span></span></a>
+            </br>
+            <a class="close"><span></span></a>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="#" class="no-underline" id="createpipeline">Create Pipeline</a></li>
+                <li><a href="#" class="no-underline" id="runpipeline">Run Pipeline(s)</a></li>
+                <li><a href="#" class="no-underline" id="updatepipeline">Update Pipeline(s)</a></li>
+                <li><a href="#" class="no-underline" id="deletepipeline">Delete Pipeline(s)</a></li>
+            </ul>
+            <div class="modal fade" id="myModal_createpipeline" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="false">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">
+                                <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                            </button>
+                            <h4 class="modal-title" id="myModalLabel">Create DevOps Pipeline</h4>
                         </div>
-
-                    </div>
-
-
-
-
-                    <h4 class="word">
-                        <form action="{{ url_for('startup') }}" method="post" id="form1" name="form1">
-                            <div class="msg" id="containermsg">{{ msg }}</div></br>
-
-                            <input id="ProjectName" name="ProjectName" type="text" placeholder="Enter Your Project Name" class="textbox" /></br></br>
-                            <input id="User" name="User" type="text" readonly="readonly" value={{ user.get("name") }} class="textbox" /></br></br>
-                            <input id="Organization" name="Organization" type="text" readonly="readonly" value={{ organization }} class="textbox" /></br></br>
-
-                            <select id="DevOpsPipelineActions" name="DevOpsPipelineActions" class="textbox">
-                                <option value="" selected>Choose DevOps Action</option>
-                                <option value="CreatePipeline">Create Pipeline</option>
-                                <option value="RunPipeline">Run Pipeline</option>
-                                <option value="DeletePipeline">Delete Pipeline</option>
-                                <option value="UpdatePipeline">Update Pipeline</option>
-                            </select></br></br>
-
-                            <div id="pipeline">
-                                <input id="PipelineName" name="PipelineName" type="text" placeholder="Enter DevOps Pipeline Name" class="textbox" /></br></br>
-                                <select id="ProjectStack" name="ProjectStack" label="Choose Project Stack" class="textbox">
-                                    <option value="" selected>Choose Project Stack</option>
-                                    <option value="DotNetCore">.Net Core</option>
-                                    <option value="Java">Java</option>
-                                    <option value="Python">Python</option>
-                                </select></br></br>
-                                <input id="Repository" name="Repository" type="text" placeholder="Enter Repo Url" class="textbox" /></br></br>
-                            </div>
-
-                            <button type="button" class="btn" id="btnclick">Submit Request <i class="fa fa-check-square-o"></i></button><a href="/logout"><i class="fa fa-power-off"></i></a>
-                        </form>
-                    </h4>
-
-
-                    <div class="modal fade" id="myModal" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <button type="button" class="close" data-dismiss="modal">
-                                        <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
-                                    </button>
-                                    <h4 class="modal-title" id="myModalLabel">DevOps Action Debug Logs</h4>
-                                </div>
-                                <div class="modal-body">
-                                    <div class='modal-body1'>
-
-
-                                        <input type="hidden" id="hidden" name="hidden" value={{ ansibleOutput }} />
-                                        {{ ansibleOutput }}
+                        <div class="modal-body">
+                            <div class='modal-body1'>
+                                <div id="img1">
+                                    <div class="windows8">
+                                        <div class="wBall" id="wBall_1">
+                                            <div class="wInnerBall"></div>
+                                        </div>
+                                        <div class="wBall" id="wBall_2">
+                                            <div class="wInnerBall"></div>
+                                        </div>
+                                        <div class="wBall" id="wBall_3">
+                                            <div class="wInnerBall"></div>
+                                        </div>
+                                        <div class="wBall" id="wBall_4">
+                                            <div class="wInnerBall"></div>
+                                        </div>
+                                        <div class="wBall" id="wBall_5">
+                                            <div class="wInnerBall"></div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                                </div>
+
+                                <form action="{{ url_for('startup') }}" method="post" id="form1" name="form1">
+                                    <div id="containermsg1"></div>
+                                    <h4 class="word">
+                                        <input id="ProjectName" name="ProjectName" type="text" placeholder="Enter Your Project Name" class="textbox" /></br></br>
+                                        <input id="User" name="User" type="text" readonly="readonly" value={{ user.get("name") }} class="textbox" /></br></br>
+                                        <input id="Organization" name="Organization" type="text" readonly="readonly" value={{ organization }} class="textbox" /></br></br>
+
+                                        <input id="PipelineName" name="PipelineName" type="text" placeholder="Enter DevOps Pipeline Name" class="textbox" /></br></br>
+                                        <select id="ProjectStack" name="ProjectStack" label="Choose Project Stack" class="textbox">
+                                            <option value="" selected>Choose Project Stack</option>
+                                            <option value="DotNetCore">.Net Core</option>
+                                            <option value="Java">Java</option>
+                                            <option value="Python">Python</option>
+                                        </select></br></br>
+                                        <input id="Repository" name="Repository" type="text" placeholder="Enter Repo Url" class="textbox" /></br></br>
+                                        <input type="hidden" id="hidden" name="hidden" value="createpipeline" />
+                                    </h4>
+                                    <button type="button" class="btn" id="btnclick1">Submit Request <i class="fa fa-check-square-o"></i></button>
+                                </form>
                             </div>
                         </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
                     </div>
-
-
-                    <hr>
-                    <footer style="text-align: right"><img src="{{url_for('static', filename='GenpactIcon.jpg')}}" width="30" height="30" /><font color="white"><b>Powered by </b></font><font color="blue"><b>Gen</b></font><font color="red"><b>pact</b></font><font color="white"><b> Microsoft CoE</b></font></footer>
-
                 </div>
-
             </div>
 
 
 
-        </div>
+            <div class="modal fade" id="myModal_runpipeline" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="false">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">
+                                <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                            </button>
+                            <h4 class="modal-title" id="myModalLabel">Trigger DevOps Pipeline</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class='modal-body1'>
 
-    </div>
+                                <div id="img2">
+                                    <div class="windows8">
+                                        <div class="wBall" id="wBall_1">
+                                            <div class="wInnerBall"></div>
+                                        </div>
+                                        <div class="wBall" id="wBall_2">
+                                            <div class="wInnerBall"></div>
+                                        </div>
+                                        <div class="wBall" id="wBall_3">
+                                            <div class="wInnerBall"></div>
+                                        </div>
+                                        <div class="wBall" id="wBall_4">
+                                            <div class="wInnerBall"></div>
+                                        </div>
+                                        <div class="wBall" id="wBall_5">
+                                            <div class="wInnerBall"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <form action="{{ url_for('startup') }}" method="post" id="form2" name="form2">
+                                    <div id="containermsg2"></div>
+                                    <h4 class="word">
+                                        <input id="ProjectName" name="ProjectName" type="text" placeholder="Enter Your Project Name" class="textbox" /></br></br>
+                                        <input id="User" name="User" type="text" readonly="readonly" value={{ user.get("name") }} class="textbox" /></br></br>
+                                        <input id="Organization" name="Organization" type="text" readonly="readonly" value={{ organization }} class="textbox" /></br></br>
+                                        <input id="PipelineName" name="PipelineName" type="text" value={{ populate_datalist_of_all_pipeline_names_in_select_menu }} class="textbox" /></br></br>
+                                        <input type="hidden" id="hidden" name="hidden" value="runpipeline" />
+                                    </h4>
+                                    <button type="button" class="btn" id="btnclick2">Submit Request <i class="fa fa-check-square-o"></i></button>
+                                </form>
+
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
 
+
+            <div class="modal fade" id="myModal_updatepipeline" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="false">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">
+                                <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                            </button>
+                            <h4 class="modal-title" id="myModalLabel">Update DevOps Pipeline</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class='modal-body1'>
+                                <div id="im3">
+                                    <div class="windows8">
+                                        <div class="wBall" id="wBall_1">
+                                            <div class="wInnerBall"></div>
+                                        </div>
+                                        <div class="wBall" id="wBall_2">
+                                            <div class="wInnerBall"></div>
+                                        </div>
+                                        <div class="wBall" id="wBall_3">
+                                            <div class="wInnerBall"></div>
+                                        </div>
+                                        <div class="wBall" id="wBall_4">
+                                            <div class="wInnerBall"></div>
+                                        </div>
+                                        <div class="wBall" id="wBall_5">
+                                            <div class="wInnerBall"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <form action="{{ url_for('startup') }}" method="post" id="form3" name="form3">
+                                    <div id="containermsg3"></div>
+                                    <h4 class="word">
+                                        <input id="ProjectName" name="ProjectName" type="text" placeholder="Enter Your Project Name" class="textbox" /></br></br>
+                                        <input id="User" name="User" type="text" readonly="readonly" value={{ user.get("name") }} class="textbox" /></br></br>
+                                        <input id="Organization" name="Organization" type="text" readonly="readonly" value={{ organization }} class="textbox" /></br></br>
+                                        <input id="PipelineName" name="PipelineName" type="text" placeholder="Enter DevOps Pipeline Name" class="textbox" /></br></br>
+                                        <input type="hidden" id="hidden" name="hidden" value="updatepipeline" />
+                                    </h4>
+                                    <button type="button" class="btn" id="btnclick3">Submit Request <i class="fa fa-check-square-o"></i></button>
+                                </form>
+
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="modal fade" id="myModal_deletepipeline" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" data-backdrop="false">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">
+                                <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                            </button>
+                            <h4 class="modal-title" id="myModalLabel">Delete DevOps Pipeline</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class='modal-body1'>
+                                <div id="img4">
+                                    <div class="windows8">
+                                        <div class="wBall" id="wBall_1">
+                                            <div class="wInnerBall"></div>
+                                        </div>
+                                        <div class="wBall" id="wBall_2">
+                                            <div class="wInnerBall"></div>
+                                        </div>
+                                        <div class="wBall" id="wBall_3">
+                                            <div class="wInnerBall"></div>
+                                        </div>
+                                        <div class="wBall" id="wBall_4">
+                                            <div class="wInnerBall"></div>
+                                        </div>
+                                        <div class="wBall" id="wBall_5">
+                                            <div class="wInnerBall"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <form action="{{ url_for('startup') }}" method="post" id="form4" name="form4">
+                                    <div id="containermsg4"></div>
+                                    <h4 class="word">
+                                        <input id="ProjectName" name="ProjectName" type="text" placeholder="Enter Your Project Name" class="textbox" /></br></br>
+                                        <input id="User" name="User" type="text" readonly="readonly" value={{ user.get("name") }} class="textbox" /></br></br>
+                                        <input id="Organization" name="Organization" type="text" readonly="readonly" value={{ organization }} class="textbox" /></br></br>
+                                        <select id="PipelineName" name="PipelineName" class="textbox">
+                                            <option value="" selected>Choose DevOps Action</option>
+                                            <option value="CreatePipeline">Create Pipeline</option>
+                                            <option value="RunPipeline">Run Pipeline</option>
+                                            <option value="DeletePipeline">Delete Pipeline</option>
+                                            <option value="UpdatePipeline">Update Pipeline</option>
+                                        </select></br></br>
+                                        <input type="hidden" id="hidden" name="hidden" value="deletepipeline" />
+                                    </h4>
+                                    <button type="button" class="btn" id="btnclick4">Submit Request <i class="fa fa-check-square-o"></i></button>
+                                </form>
+
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </nav>
+    </aside>
 </body>
 </html>
+
+

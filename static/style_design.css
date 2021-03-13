@@ -1,0 +1,184 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    overflow: hidden;
+    background: RGBA(29, 20, 35, 1);
+    font-family: 'Poppins', sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+main {
+    padding: 60px 15px;
+    text-align: center;
+    max-width: 100%;
+}
+
+h1 {
+    font-size: 2.5em;
+    font-weight: 270;
+    color: rgba(255,255,255,0.9);
+    margin: 0 0 10px;
+}
+
+h3 {
+    //font-size:2.5em;
+    //font-weight: 270;
+    color: rgba(255,255,255,0.9);
+    margin: 0 0 10px;
+}
+
+aside {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background: linear-gradient(200deg, #27156e, #6a2a88, #9f4981);
+    opacity: 0;
+    visibility: hidden;
+    -webkit-transition: all .5s ease;
+    z-index: 2;
+}
+
+.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+nav {
+    text-align: center;
+    height: 95vh;
+    display: flex;
+    -webkit-box-orient: :vertical;
+    -webkit-box-direction: normal;
+    flex-direction: column;
+    -webkit-box-pack: center;
+    justify-content: center;
+}
+
+    nav ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+        nav ul li {
+            -webkit-box-align: center;
+            align-items: center;
+            -webkit-box-flex: 1;
+            flex: 1;
+            line-height: 20vh;
+        }
+
+            nav ul li a {
+                font-size: 1.5em;
+                -webkit-transition: all 0.5s ease;
+                transition: all 0.5s ease;
+                display: block;
+                text-decoration: none;
+                color: rgba(255,255,255,0.5);
+            }
+
+                nav ul li a:hover {
+                    color: rgba(255,255,255,0.9);
+                    -webkit-transform: scale(1.1);
+                    transform: scale(1.1);
+                }
+
+                    nav ul li a:hover:before {
+                        visibility: visible;
+                        -webkit-transform: scaleX(1);
+                        transform: scaleX(1);
+                    }
+
+                nav ul li a:before {
+                    content: '';
+                    position: absolute;
+                    width: 50%;
+                    height: 2px;
+                    bottom: 0;
+                    left: 25%;
+                    background: white;
+                    visibility: hidden;
+                    -webkit-transform: scaleX(0);
+                    transform: scaleX(0);
+                    -webkit-transition: all 0.3s ease-in-out 0s;
+                    transition: all 0.3s ease-in-out 0s;
+                }
+
+button {
+    padding: 15px 40px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.4);
+    color: white;
+    cursor: pointer;
+    border-radius: 8px;
+    -webkit-transition: all .5s ease;
+    transition: all .5s ease;
+}
+
+    button:hover {
+        border: 1px solid white;
+    }
+
+    button:focus {
+        outline: none;
+    }
+
+.close {
+    position: fixed;
+    top: 40px;
+    right: 60px;
+    color: white;
+    z-index: 3;
+    cursor: pointer;
+}
+
+    .close span,
+    .close span:before,
+    .close span:after {
+        border-radius: 4px;
+        height: 5px;
+        width: 35px;
+        background: white;
+        position: absolute;
+        display: block;
+        content: '';
+    }
+
+    .close span {
+        background: transparent;
+    }
+
+        .close span:before {
+            -webkit-transform: rotate(45deg);
+            transform: rotate(45deg);
+        }
+
+        .close span:after {
+            -webkit-transform: rotate(-45deg);
+            transform: rotate(-45deg);
+        }
+
+.outer-close {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 85px;
+    height: 85px;
+    cursor: pointer;
+}
+
+@media screen and (min-width:600px) {
+    h1 {
+        font-size: 3em;
+    }
+
+    nav ul li a {
+        font-size: 3em;
+    }
+}

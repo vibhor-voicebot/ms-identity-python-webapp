@@ -62,7 +62,7 @@
   - name: Create the automated Azure DevOps pipeline by referencing the azure-pipelines.yml
     shell: "az pipelines create --name {{ devopsProject | default('') }}.CI --description 'Pipeline setup for the .Net project' --repository {{ Repository | default('') }} --branch master --yml-path azure-pipelines.yml --service-connection {{ GitHubServiceConnectionIDOut.stdout }}"
     register: createDotNetCorePipelineOut
-    when: ( ProjectStack == "dotnetcore")
+    when: ( ProjectStack == "dotnetcore" and DevOpsPipelineActions == "createpipeline" )
   - debug: var=createDotNetCorePipelineOut.stdout
 
 
@@ -70,7 +70,7 @@
   - name: Create the automated Azure DevOps pipeline by referencing the azure-pipelines.yml
     shell: "az pipelines create --name {{ devopsProject | default('') }}.CI --description 'Pipeline setup for the Java project' --repository {{ Repository | default('') }} --branch master --yml-path azure-pipelines.yml --service-connection {{ GitHubServiceConnectionIDOut.stdout }}"
     register: createJavaPipelineOut
-    when: ( ProjectStack == "java")
+    when: ( ProjectStack == "java" and DevOpsPipelineActions == "createpipeline" )
   - debug: var=createJavaPipelineOut.stdout
 
 
@@ -78,7 +78,7 @@
   - name: Create the automated Azure DevOps pipeline by referencing the azure-pipelines.yml
     shell: "az pipelines create --name {{ devopsProject | default('') }}.CI --description 'Pipeline setup for the Python project' --repository {{ Repository | default('') }} --branch master --yml-path azure-pipelines.yml --service-connection {{ GitHubServiceConnectionIDOut.stdout }}"
     register: createPythonPipelineOut
-    when: ( ProjectStack == "python")
+    when: ( ProjectStack == "python" and DevOpsPipelineActions == "createpipeline" )
   - debug: var=createPythonPipelineOut.stdout
 
 

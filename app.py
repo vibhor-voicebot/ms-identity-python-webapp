@@ -107,8 +107,9 @@ def graphcall():
 
 @app.route('/startup', methods =['GET', 'POST'])
 def startup():
-    msg = ''
-
+    dataout = dict()
+    msg = ""
+    ansibleOutput = ""
     if not session.get("user"):
         return redirect(url_for("login"))
      
@@ -117,7 +118,7 @@ def startup():
         orgName = request.form['Organization'] or ""
         projName = request.form['ProjectName'] or ""
         username = request.form['User'] or ""
-        DevOpsPipelineActions = request.form['DevOpsPipelineActions'] or ""
+        DevOpsPipelineActions = ""
         PipelineName = request.form['PipelineName'] or ""
         ProjectStack = str(request.form['ProjectStack']).lower() or ""
         Repository = request.form['Repository'] or ""
@@ -131,7 +132,15 @@ def startup():
         devopsProject = projName
         pat = "gnzy62ecu4idcsa7y4ho2hrqokoihrid66pcz6fghp6kobc4wr6a"
         msg = orgName+' | '+projName
-
+        hiddenValue = request.form['hidden'] or ""
+        if "createpipeline" in hiddenValue.lower() :
+            DevOpsPipelineActions = "createpipeline"
+        if "runpipeline" in hiddenValue.lower() :
+            DevOpsPipelineActions = "runpipeline"
+        if "updatepipeline" in hiddenValue.lower() :
+            DevOpsPipelineActions = "updatepipeline"
+        if "deletepipeline" in hiddenValue.lower() :
+            DevOpsPipelineActions = "deletepipeline"
         #conn = pymysql.connect(user='myadmin@ansibledemoserver', password='Feb@2021', host='ansibledemoserver.mysql.database.azure.com', database='defaultdb', ssl= {'ssl': {'ca': '/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt'}})
         #Creating a cursor object using the cursor() method
         #cursor = conn.cursor()
@@ -161,10 +170,16 @@ def startup():
             msg = "Devops Pipeline -"+PipelineName+" is created for project -"+devopsProject
         else :
             msg = "Failed to create Devops Pipeline -"+PipelineName+" for project -"+devopsProject
-        return render_template('index.html', msg = msg, user=session["user"], ansibleOutput = ansibleOutput, organization=orgName, PipelineName=PipelineName, Repository=Repository)
+        dataout["msg"] = msg
+        dataout["ansibleOutput"] = str(ansibleOutput)
+        return jsonify(dataout)
+        #return render_template('index.html', msg = msg, user=session["user"], ansibleOutput = ansibleOutput, organization=orgName, PipelineName=PipelineName, Repository=Repository)
 
       except Exception as e:
-        return render_template('index.html', msg = msg, user=session["user"], ansibleOutput = str(e), organization=orgName, PipelineName=PipelineName, Repository=Repository)
+        dataout["msg"] = msg
+        dataout["ansibleOutput"] = str(e)
+        return jsonify(dataout)
+        #return render_template('index.html', msg = msg, user=session["user"], ansibleOutput = str(e), organization=orgName, PipelineName=PipelineName, Repository=Repository)
         #else:
             #msg = 'Your project is not onboarded yet, please proceed with Sign-Up Workflow!'
             #return render_template('index.html', msg = msg)

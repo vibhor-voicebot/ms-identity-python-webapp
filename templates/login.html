@@ -1,143 +1,75 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title> Azure Onboarding Automation Framework </title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Azure DevOps Onboarding Automation Framework (One-CLick Solution)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
-
-
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_design.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        $(function () {
+            $('.toggle-overlay').click(function () {
+                $('aside').toggleClass('open');
+            })
+        })
+    </script>
     <style>
-        body {
-            font-family: 'Lato', sans-serif;
+        a {
+            font-size: 1.5em !important;
+            -webkit-transition: all 0.5s ease !important;
+            transition: all 0.5s ease !important;
+            display: block !important;
+            text-decoration: none !important;
+            color: rgba(255,255,255,0.5) !important;
         }
 
-
-        .header {
-            padding: 5px 10px;
-            width: 350px;
-            height: 70px;
-            background-color: #236B8E;
-        }
-
-
-        .overlay {
-            height: 100%;
-            width: 0;
-            position: fixed;
-            z-index: 1;
-            top: 0;
-            left: 0;
-            background-color: rgb(0,0,0);
-            background-color: rgba(0,0,0, 0.9);
-            overflow-x: hidden;
-            transition: 0.5s;
-        }
-
-        .overlay-content {
-            position: relative;
-            top: 2%;
-            width: 100%;
-            text-align: center;
-            margin-top: 3px;
-        }
-
-
-        .overlay a {
-            padding: 8px;
-            text-decoration: none;
-            //font-size: 30px;
-            color: #818181;
-            display: block;
-            transition: 0.3s;
-        }
-
-            .overlay a:hover, .overlay a:focus {
-                color: #f1f1f1;
+            a:hover {
+                color: rgba(255,255,255,0.9) !important;
+                -webkit-transform: scale(1.1) !important;
+                transform: scale(1.1) !important;
             }
 
-        .overlay .closebtn {
-            position: absolute;
-            top: 20px;
-            right: 45px;
-            font-size: 60px;
-        }
+                a:hover:before {
+                    visibility: visible !important;
+                    -webkit-transform: scaleX(1) !important;
+                    transform: scaleX(1) !important;
+                }
 
-        @media screen and (max-height: 450px) {
-            .overlay a {
-                font-size: 20px
+            a:before {
+                content: '' !important;
+                position: absolute !important;
+                width: 50% !important;
+                height: 2px !important;
+                bottom: 0 !important;
+                left: 25% !important;
+                background: white !important;
+                visibility: hidden !important;
+                -webkit-transform: scaleX(0) !important;
+                transform: scaleX(0) !important;
+                -webkit-transition: all 0.3s ease-in-out 0s !important;
+                transition: all 0.3s ease-in-out 0s !important;
             }
-
-            .overlay .closebtn {
-                font-size: 40px;
-                top: 15px;
-                right: 35px;
-            }
-        }
-
-
-        #img {
-            display: none;
-            position: fixed;
-            top: 50;
-            left: 0;
-            //background: #fff;
-            width: 100%;
-            height: 100%;
-        }
     </style>
 
-    <script>
-        function openNav() {
-            document.getElementById("myNav").style.width = "100%";
-        }
-
-        function closeNav() {
-            document.getElementById("myNav").style.width = "0%";
-        }
-
-        $(document).ready(function () {
-            document.getElementById("myNav").style.width = "100%";
-            $('#myNav').show();
-        });
-
-
-    </script>
 </head>
 <body>
+    <main>
 
-    <div id="myNav" class="overlay">
-        <div class="overlay-content">
-            <div align="center">
-                <div align="center" class="border">
-                    <div class="header">
-                        <h5 class="word">Azure DevOps Onboarding Framework</h5>
-                    </div></br></br></br>
-                    <h3 class="word">
-                        <div class="msg">{{ msg }}</div>
-                        <a href='{{ auth_url }}'>Sign <i class="fa fa-linkedin-square" style="font-size:24px"></i></a><h6 class="word">(using Azure MSAL Identity)</h6>
-                        {% if config.get("B2C_RESET_PASSWORD_AUTHORITY") %}
-                        <li>
-                            <a href='{{_build_auth_code_flow(authority=config["B2C_RESET_PASSWORD_AUTHORITY"])["auth_uri"]}}'>Reset Password</a>
-                        </li>
-                        {% endif %}
-                        </br></br>
-                    </h3>
-                    <hr>
-                    <footer style="text-align: right"><img src="{{url_for('static', filename='GenpactIcon.jpg')}}" width="30" height="30" /><font color="white"><b>Powered by </b></font><font color="blue"><b>Gen</b></font><font color="red"><b>pact</b></font><font color="white"><b> Microsoft CoE</b></font></footer>
-
-                </div>
-            </div>
-
-
-        </div>
-    </div>
+        <h1>Azure DevOps Onboarding Automation Framework</h1>
+        <h3>(One-Click Solution)</h3>
+        <a href='{{ auth_url }}' class="no-underline toggle-overlay">Sign <i class="fa fa-linkedin-square " style="font-size:24px"></i></a><h6 class="word">(using Azure MSAL Identity)</h6>
+        {% if config.get("B2C_RESET_PASSWORD_AUTHORITY") %}
+        <li>
+            <a href='{{_build_auth_code_flow(authority=config["B2C_RESET_PASSWORD_AUTHORITY"])["auth_uri"]}}'>Reset Password</a>
+        </li>
+        {% endif %}
+        <footer style="text-align: right; bottom: 0; position: fixed; margin: auto; height: 50px; padding: 0px 0px 0px 0px; float: right;"><img src="{{url_for('static', filename='GenpactIcon.jpg')}}" width="30" height="30" /> <font color="white"><b>Powered by </b></font><font color="blue"><b>Gen</b></font><font color="red"><b>pact</b></font><font color="white"><b> Microsoft CoE</b></font></footer>
+    </main>
 
 </body>
 
 </html>
+

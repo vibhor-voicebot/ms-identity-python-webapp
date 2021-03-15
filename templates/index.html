@@ -120,6 +120,11 @@
             $('#img2').hide();
             $('#img3').hide();
             $('#img4').hide();
+            $('#OperationToShow').hide();
+            $("#NewPipelineName").hide();
+            $("#NewBranch").hide();
+            $("#NewDescription").hide();
+
             $("#createpipeline").click(function () {
                 document.getElementById("containermsg1").innerHTML = "";
                 $('#myModal_createpipeline').modal('show');
@@ -209,17 +214,7 @@
 
             $("#btnclick2").click(function () {
 
-                //$('#form1').submit(function() {
                 var res = true;
-                $('#form2').find("input[type='text'],select").each(function () {
-                    if ($(this).val().trim() == "" || $(this).val() == "None" || $(this).val() == "none") {
-                        res = false;
-                        var nameval = $(this).attr('name');
-                        document.getElementById("containermsg2").innerHTML = nameval + " is empty, need a value";
-                        return false;
-                    }
-                });
-
                 if (res) {
                     var str = $("#form2").serialize();
                     $.ajax({
@@ -236,11 +231,32 @@
                             $('#img2').hide();
                         },
                         success: function (data) {
-                            document.getElementById("containermsg2").innerHTML = data.msg;
+                            if (data.pipelineList == "#") {
+                                document.getElementById("containermsg2").innerHTML = "No Devops pipeline exist. Please check console for debugging purpose";
+                            } else {
+                                document.getElementById("containermsg2").innerHTML = data.msg;
+                            }
                             console.log("details of ansible playbook for create pipeline is below");
-                            console.log(data.ansibleOutput);
+                            //console.log(data.ansibleOutput);
+                            console.log(data);
+
+                            //$.each(data.pipelineList, function(key, value){
+                            //for( item in data.pipelineList ) {
+                            //alert ("item in list is "+item);
+                            //Use the Option() constructor to create a new HTMLOptionElement.
+                            //var option = new Option(data.pipelineList, data.pipelineList);
+                            //Convert the HTMLOptionElement into a JQuery object that can be used with the append method.
+                            //$(option).html(data.pipelineList);
+                            //Append the option to our Select element.
+                            //$("#PipelineName").append(option);
+                            //}
+
+                            var el = $('select[id="PipelineName"]');
+                            el.append('<option value="' + data.pipelineList + '">' + data.pipelineList + '</option>');
+                            $('#loading').text('Select Pipeline');
                         },
                         error: function (xhr) {
+                            $('#img2').hide();
                             console.log("error. see details below.");
                             console.log(xhr.status + ": " + xhr.responseText);
                         },
@@ -257,17 +273,7 @@
 
             $("#btnclick3").click(function () {
 
-                //$('#form1').submit(function() {
                 var res = true;
-                $('#form3').find("input[type='text'],select").each(function () {
-                    if ($(this).val().trim() == "" || $(this).val() == "None" || $(this).val() == "none") {
-                        res = false;
-                        var nameval = $(this).attr('name');
-                        document.getElementById("containermsg3").innerHTML = nameval + " is empty, need a value";
-                        return false;
-                    }
-                });
-
                 if (res) {
                     var str = $("#form3").serialize();
                     $.ajax({
@@ -284,9 +290,17 @@
                             $('#img3').hide();
                         },
                         success: function (data) {
-                            document.getElementById("containermsg3").innerHTML = data.msg;
-                            console.log("details of ansible playbook for create pipeline is below");
+                            if (data.pipelineList == "#") {
+                                document.getElementById("containermsg3").innerHTML = "No Devops pipeline exist. Please check console for debugging purpose";
+                            } else {
+                                document.getElementById("containermsg3").innerHTML = data.msg;
+                            }
+                            console.log("details of ansible playbook for update pipeline is below");
                             console.log(data.ansibleOutput);
+                            var el = $('select[id="PipelineName"]');
+                            el.append('<option value="' + data.pipelineList + '">' + data.pipelineList + '</option>');
+                            $('#loadingupdate').text('Select Pipeline');
+                            $('#OperationToShow').show();
                         },
                         error: function (xhr) {
                             console.log("error. see details below.");
@@ -305,17 +319,7 @@
 
             $("#btnclick4").click(function () {
 
-                //$('#form1').submit(function() {
                 var res = true;
-                $('#form4').find("input[type='text'],select").each(function () {
-                    if ($(this).val().trim() == "" || $(this).val() == "None" || $(this).val() == "none") {
-                        res = false;
-                        var nameval = $(this).attr('name');
-                        document.getElementById("containermsg4").innerHTML = nameval + " is empty, need a value";
-                        return false;
-                    }
-                });
-
                 if (res) {
                     var str = $("#form4").serialize();
                     $.ajax({
@@ -332,9 +336,18 @@
                             $('#img4').hide();
                         },
                         success: function (data) {
-                            document.getElementById("containermsg4").innerHTML = data.msg;
-                            console.log("details of ansible playbook for create pipeline is below");
+                            if (data.pipelineList == "#") {
+                                document.getElementById("containermsg4").innerHTML = "No Devops pipeline exist. Please check console for debugging purpose";
+                            } else {
+                                document.getElementById("containermsg4").innerHTML = data.msg;
+                            }
+                            console.log("details of ansible playbook for deleting the pipeline is below");
                             console.log(data.ansibleOutput);
+                            console.log(data);
+                            var el = $('select[id="PipelineName"]');
+                            el.append('<option value="' + data.pipelineList + '">' + data.pipelineList + '</option>');
+                            $('#loadingdelete').text('Select Pipeline');
+
                         },
                         error: function (xhr) {
                             console.log("error. see details below.");
@@ -349,6 +362,62 @@
 
 
             });
+
+
+
+
+
+            $('#form3').find("select").change(function () {
+                if ($(this).val().trim() == "" || $(this).val() == "None" || $(this).val() == "none") {
+                    res = false;
+                    var nameval = $(this).attr('name');
+                    document.getElementById("containermsg3").innerHTML = nameval + " is empty, need a value";
+                    return false;
+                }
+                if ($(this).val().trim() == "newpipelinename") {
+                    $("#NewPipelineName").show();
+                    $("#NewBranch").hide();
+                    $("#NewDescription").hide();
+                }
+                if ($(this).val().trim() == "newbranch") {
+                    $("#NewBranch").show();
+                    $("#NewPipelineName").hide();
+                    $("#NewDescription").hide();
+                }
+
+                if ($(this).val().trim() == "newdescription") {
+                    $("#NewBranch").hide();
+                    $("#NewPipelineName").hide();
+                    $("#NewDescription").show();
+                }
+            });
+
+
+            operationVal = $("#Operation").val().trim();
+            if (operationVal == "newpipelinename") {
+                $("#NewPipelineName").show();
+                $("#NewBranch").hide();
+                $("#NewDescription").hide();
+            }
+            if (operationVal == "newbranch") {
+                $("#NewBranch").show();
+                $("#NewPipelineName").hide();
+                $("#NewDescription").hide();
+            }
+
+            if (operationVal == "newdescription") {
+                $("#NewBranch").hide();
+                $("#NewPipelineName").hide();
+                $("#NewDescription").show();
+            }
+
+            if (operationVal == "") {
+                $("#NewBranch").hide();
+                $("#NewPipelineName").hide();
+                $("#NewDescription").hide();
+            }
+
+
 
 
         });
@@ -476,7 +545,9 @@
                                         <input id="ProjectName" name="ProjectName" type="text" placeholder="Enter Your Project Name" class="textbox" /></br></br>
                                         <input id="User" name="User" type="text" readonly="readonly" value={{ user.get("name") }} class="textbox" /></br></br>
                                         <input id="Organization" name="Organization" type="text" readonly="readonly" value={{ organization }} class="textbox" /></br></br>
-                                        <input id="PipelineName" name="PipelineName" type="text" value={{ populate_datalist_of_all_pipeline_names_in_select_menu }} class="textbox" /></br></br>
+                                        <select name="PipelineName" id="PipelineName" class="textbox">
+                                            <option value="" id="loading">lazy Loading..</option>
+                                        </select></br></br>
                                         <input type="hidden" id="hidden" name="hidden" value="runpipeline" />
                                     </h4>
                                     <button type="button" class="btn" id="btnclick2">Submit Request <i class="fa fa-check-square-o"></i></button>
@@ -504,7 +575,7 @@
                         </div>
                         <div class="modal-body">
                             <div class='modal-body1'>
-                                <div id="im3">
+                                <div id="img3">
                                     <div class="windows8">
                                         <div class="wBall" id="wBall_1">
                                             <div class="wInnerBall"></div>
@@ -531,7 +602,19 @@
                                         <input id="ProjectName" name="ProjectName" type="text" placeholder="Enter Your Project Name" class="textbox" /></br></br>
                                         <input id="User" name="User" type="text" readonly="readonly" value={{ user.get("name") }} class="textbox" /></br></br>
                                         <input id="Organization" name="Organization" type="text" readonly="readonly" value={{ organization }} class="textbox" /></br></br>
-                                        <input id="PipelineName" name="PipelineName" type="text" placeholder="Enter DevOps Pipeline Name" class="textbox" /></br></br>
+                                        <select id="PipelineName" name="PipelineName" class="textbox">
+                                            <option value="" id="loadingupdate">Lazy Loading..</option>
+                                        </select></br></br>
+                                        <div id="OperationToShow">
+                                            <select id="Operation" name="Operation" class="textbox">
+                                                <option value="newdescription" id="newdescription">Description</option>
+                                                <option value="newpipelinename" id="newpipelinename">Pipeline Name</option>
+                                                <option value="newbranch" id="newbranch">Branch</option>
+                                            </select></br></br>
+                                            <input id="NewPipelineName" name="NewPipelineName" type="text" placeholder="Enter new Pipeline name" class="textbox" />
+                                            <input id="NewDescription" name="NewDescription" type="text" placeholder="Enter new description" class="textbox" />
+                                            <input id="NewBranch" name="NewBranch" type="text" placeholder="Enter new branch" class="textbox" />
+                                        </div>
                                         <input type="hidden" id="hidden" name="hidden" value="updatepipeline" />
                                     </h4>
                                     <button type="button" class="btn" id="btnclick3">Submit Request <i class="fa fa-check-square-o"></i></button>
@@ -586,11 +669,7 @@
                                         <input id="User" name="User" type="text" readonly="readonly" value={{ user.get("name") }} class="textbox" /></br></br>
                                         <input id="Organization" name="Organization" type="text" readonly="readonly" value={{ organization }} class="textbox" /></br></br>
                                         <select id="PipelineName" name="PipelineName" class="textbox">
-                                            <option value="" selected>Choose DevOps Action</option>
-                                            <option value="CreatePipeline">Create Pipeline</option>
-                                            <option value="RunPipeline">Run Pipeline</option>
-                                            <option value="DeletePipeline">Delete Pipeline</option>
-                                            <option value="UpdatePipeline">Update Pipeline</option>
+                                            <option value="" id="loadingdelete">Lazy Loading..</option>
                                         </select></br></br>
                                         <input type="hidden" id="hidden" name="hidden" value="deletepipeline" />
                                     </h4>
@@ -611,5 +690,6 @@
     </aside>
 </body>
 </html>
+
 
 

@@ -17,3 +17,8 @@ mysql-connector
 pymysql
 azure.cli
 flask-mysqldb
+
+
+pyodbc
+adal
+msrestazure

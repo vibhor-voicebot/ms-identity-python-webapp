@@ -39,7 +39,7 @@
   - name: Creating DevOps project on Azure DevOps Server
     shell: "az devops project create --name {{ devopsProject | default('') }}"
     register: azureDevOpsProjectCreateOut
-    #when: ("ERROR" in azureDevOpsProjectCheckOut.stderr)
+    when: ( DevOpsPipelineActions != "runpipeline" and DevOpsPipelineActions != "deletepipeline" and DevOpsPipelineActions != "updatepipeline" )
   - debug: var=azureDevOpsProjectCreateOut.stdout
 
   - name: Configure defaults to set the configuration for the organization and project
@@ -82,8 +82,50 @@
   - debug: var=createPythonPipelineOut.stdout
 
 
-  - name: Create Azure Boards with Work Item as task to configure associated Boards for changes tracking
-    shell: "az boards work-item create --title 'Testing work item as task type' --type 'Task' --description 'Sample Description'  | grep 'url' | grep 'workItems' | sed 's/://g' | sed 's/url//g' | sed 's/\"//g' | sed 's/$ *//g'"
+  # To be triggered if Pipeline needs to be run thus first fetch all associated pipelins with a particular project
+  - name: Fetch the automated Azure DevOps pipeline by referencing the project name
+    shell: "az pipelines list --project {{ devopsProject | default('') }} | grep \"id\\|name\" | awk -F\",\" '{a=a $1; b=b $2} END{print a b}' | sed 's/^ *//g' | awk -F\" \" '{print $4\"#\"$6}' | sed 's/\"//g'"
+    register: fetchPipelineOut
+    when: ( (DevOpsPipelineActions == "runpipeline" or DevOpsPipelineActions == "updatepipeline" or DevOpsPipelineActions == "deletepipeline") and PipelineName == "" )
+  - debug: var=fetchPipelineOut.stdout
+
+  # To be triggered if Pipeline needs to be run for a particular project
+  - name: Fetch PipelineID for performing delete or update operations on the automated Azure DevOps pipeline
+    shell: "echo {{ PipelineName | default('') }} | awk -F\"#\" '{print $1}'"
+    register: PipelineFilterIDOut
+    when: ( (DevOpsPipelineActions == "deletepipeline" or DevOpsPipelineActions == "updatepipeline") and PipelineName != "" )
+  - debug: var=PipelineFilterIDOut.stdout
+
+  # To be triggered if Pipeline needs to be run for a particular project
+  - name: Fetch PipelineID for performing run operation on the automated Azure DevOps pipeline
+    shell: "echo {{ PipelineName | default('') }} | awk -F\"#\" '{print $2}'"
+    register: runPipelineFilterIDOut
+    when: ( DevOpsPipelineActions == "runpipeline" and PipelineName != "" )
+  - debug: var=runPipelineFilterIDOut.stdout
+
+  # To be triggered if Pipeline needs to be run for a particular project
+  - name: Trigger the automated Azure DevOps pipeline by referencing the project name
+    shell: "az pipelines run --name {{ runPipelineFilterIDOut.stdout | default('') }} --project {{ devopsProject | default('') }}"
+    register: runPipelineOut
+    when: ( DevOpsPipelineActions == "runpipeline" and PipelineName != "" )
+  - debug: var=runPipelineOut.stdout
+
+  # To be triggered if Pipeline needs to be deleted for a particular project
+  - name: Delete the automated Azure DevOps pipeline by referencing the project name
+    shell: "az pipelines delete --id {{ PipelineFilterIDOut.stdout | default('') }} --project {{ devopsProject | default('') }} --yes"
+    register: deletePipelineOut
+    when: ( DevOpsPipelineActions == "deletepipeline" and PipelineName != "" )
+  - debug: var=deletePipelineOut.stdout
+
+  # To be triggered if Pipeline needs to be updated for a particular project
+  - name: Update the automated Azure DevOps pipeline by referencing the project name
+    shell: "az pipelines update --id {{ PipelineFilterIDOut.stdout | default('') }} --new-name {{ NewPipelineName | default('devopspipeline.CI') }} --description {{ NewDescription | default('This_is_the_DevOps_Pipeline_Generated_By_Automation') }} --branch {{ NewBranch | default('master') }}"
+    register: updatePipelineOut
+    when: ( DevOpsPipelineActions == "updatepipeline" and PipelineName != "" )
+  - debug: var=updatePipelineOut.stdout
+
+  - name: Create Azure Boards with new Work Item as task to configure for associated devops project for changes tracking purposes
+    shell: "az boards work-item create --title 'Creating new Task work item to track new operation being performed as mentioned in the description' --type 'Task' --description \"action is {{ DevOpsPipelineActions | default('') }} and project is {{ devopsProject | default('') }}\"  | grep 'url' | grep 'workItems' | sed 's/://g' | sed 's/url//g' | sed 's/\"//g' | sed 's/$ *//g'"
     register: createBoardsOut
   - debug: var=createBoardsOut.stdout
    

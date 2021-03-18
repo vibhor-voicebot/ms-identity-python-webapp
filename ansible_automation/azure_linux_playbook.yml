@@ -35,17 +35,18 @@
   #- debug: var=azureDevOpsProjectCheckOut
 
 
+  - name: Configure defaults to set the configuration for the organization and project
+    shell: "az devops configure --defaults organization=https://dev.azure.com/{{ devopsOrgName | default('') }} project={{ devopsProject | default('') }}"
+    register: devopsConfigureOut
+  - debug: var=devopsConfigureOut.stdout
+
+
   # To be run if output of above task is not "TF200016: The following project does not exist" in azureDevOpsProjectCheckOut.stdout variable
   - name: Creating DevOps project on Azure DevOps Server
     shell: "az devops project create --name {{ devopsProject | default('') }}"
     register: azureDevOpsProjectCreateOut
     when: ( DevOpsPipelineActions != "runpipeline" and DevOpsPipelineActions != "deletepipeline" and DevOpsPipelineActions != "updatepipeline" )
   - debug: var=azureDevOpsProjectCreateOut.stdout
-
-  - name: Configure defaults to set the configuration for the organization and project
-    shell: "az devops configure --defaults organization=https://dev.azure.com/{{ devopsOrgName | default('') }} project={{ devopsProject | default('') }}"
-    register: devopsConfigureOut
-  - debug: var=devopsConfigureOut.stdout
 
 
   # To be run if devops action is to create a pipeline

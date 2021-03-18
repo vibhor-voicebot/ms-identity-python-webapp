@@ -64,11 +64,40 @@ def index():
         return redirect(url_for("login"))
     print ("Printing the User details from Session ++++++++++++++++++")
     user=session["user"]
+    #user={'preferred_username': 'vibhor.saxena@genpact.com', 'name': 'vibhor'}
     organization = ""
     organization = str(str(str(user.get('preferred_username')).split("@")[1]).split(".com")[0])
     print (user)
 
-    return render_template('index.html', user=session["user"], organization=organization, ansibleOutput="", version=msal.__version__)
+
+    caBundle_Azure_Loc = "/etc/ssl/certs/ca-certificates.crt"
+    caBundle_Localhost_Loc = "/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt"
+    conn = pymysql.connect(user='myadmin@azureonboardingdb', password='Feb@2021', host='azureonboardingdb.mysql.database.azure.com', database='defaultdb', ssl= {'ssl': {'ca': caBundle_Azure_Loc}})
+    #Creating a cursor object using the cursor() method
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM RolesMapping WHERE userprincipalname = '{}' AND role = 'admin'".format(user.get('preferred_username')))
+    print ("Checking for logged-in user's role mapping in Azure MySQL table")
+    print ("SELECT * FROM RolesMapping WHERE userprincipalname ="+user.get('preferred_username'))
+    result = cursor.fetchone()
+    print(result)
+    if result:
+        datalist = []
+        print("user is assigned with admin role")
+        cursor.execute("SELECT * FROM ClientsMappingVault WHERE orgName = '{}' AND is_onboarded='NO'".format(organization.lower()))
+        result = cursor.fetchall()
+        #print(result)
+        if result:
+           for eachrow in result :
+               dictobj = {} 
+               dictobj['project'] = str(eachrow[1])
+               dictobj['organization'] = str(eachrow[7])
+               dictobj['devopsorg'] = str(eachrow[7])
+               datalist.append(dictobj)
+        print(datalist) 
+        return render_template('index_admin.html', user=session["user"], organization=organization, datalist=datalist, ansibleOutput="", version=msal.__version__)
+
+    else :
+        return render_template('index.html', user=session["user"], organization=organization, ansibleOutput="", version=msal.__version__)
 
 #@app.route("/login")
 #def login():
@@ -209,24 +238,40 @@ def startup():
                 NewPipelineName = request.form['NewPipelineName']
         if "deletepipeline" in hiddenValue.lower() :
             DevOpsPipelineActions = "deletepipeline"
-        #conn = pymysql.connect(user='myadmin@ansibledemoserver', password='Feb@2021', host='ansibledemoserver.mysql.database.azure.com', database='defaultdb', ssl= {'ssl': {'ca': '/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt'}})
+
+        caBundle_Azure_Loc = "/etc/ssl/certs/ca-certificates.crt"
+        caBundle_Localhost_Loc = "/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt"      
+
+        conn = pymysql.connect(user='myadmin@azureonboardingdb', password='Feb@2021', host='azureonboardingdb.mysql.database.azure.com', database='defaultdb', ssl= {'ssl': {'ca': caBundle_Azure_Loc}})
         #Creating a cursor object using the cursor() method
-        #cursor = conn.cursor()
-        #cursor.execute('SELECT * FROM ClientsMappingVault WHERE orgName = {} AND projectName = {}').format(orgName, projName)
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM ClientsMappingVault WHERE orgName = '{}' AND projectName = '{}' AND is_onboarded='YES'".format(orgName, projName))
         print ("Checking for Service principals mapping in Azure MySQL table")
-        #print ('SELECT * FROM ClientsMappingVault WHERE orgName = {} AND projectName = {}')).format(orgName, projName)
-        print ('SELECT * FROM ClientsMappingVault WHERE orgName ='+orgName+' AND projectName ='+projName)
-        #result = cursor.fetchone()
-        #if result:
-            #servicePrincipalName = result['servicePrincipalName']
-            #clientID = result['clientID']
-            #clientSecret = result['clientSecret']
-            #tenantID = result['tenantID']
-            #objectID = result['objectID']
-            #resourceGroupName = result['resourceGroupName']
-            #devopsOrgName = result['devopsOrgName'] #this will be same as OrgName for now and will be saved in DB when admin user submits the onboarding operation + he has to additonally create devops org on dev.azure.com UI and generate PAT token which will make ajax call from onboarding webpage (psot submitting mapping details in DB) to save PAT against the row(s) with matching OrgName
-            #devopsProject = result['devopsProject'] # this will saved with same value as what ProjectName is saved when admin saves the details in DB along with Org & DevOps OrgName
-            #pat = result['PAT']
+        print ("SELECT * FROM ClientsMappingVault WHERE orgName ="+orgName+" AND projectName ="+projName+" AND is_onboarded=YES")
+        result = cursor.fetchone()
+        print(result)
+        if result:
+            #servicePrincipalName = result[4]
+            #clientID = result[2]
+            #clientSecret = result[3]
+            #tenantID = result[5]
+            #objectID = result[6]
+            #resourceGroupName = result[8]
+            devopsOrgName = result[9]
+            devopsProject = result[10]
+            pat = result[11]
+
+        else :
+            cursor.execute("insert into ClientsMappingVault (devopsOrgName, devopsProject, is_onboarded, orgName, projectName)  values ('{}', '{}', 'NO', '{}', '{}')".format(orgName, devopsProject, orgName, projName))
+            conn.commit()
+            cursor.execute("SELECT * FROM ClientsMappingVault WHERE orgName ='{}' AND projectName ='{}' AND is_onboarded='NO'".format(orgName,projName))
+            result = cursor.fetchone()
+            print(result)            
+            dataout["msg"] = "Project -"+devopsProject+" for org -"+orgName+" is not onboarded. Contact the admin user of your organization.."
+            dataout["ansibleOutput"] = "Project -"+devopsProject+" for org -"+orgName+" is not onboarded. Contact the admin user of your organization.."
+            dataout["pipelineList"] = "Exception occured"
+            return jsonify(dataout)
+
 
         # Calling Ansible Playbook here that will login as ServicePrincipal credentials, then based on DevOps action type run the az create/update/run pipeline workflows
         cmd = "ansible-playbook ./ansible_automation/azure_linux_playbook.yml -vv --extra-vars=\"orgName={orgName} projName={projName} username={username} DevOpsPipelineActions={DevOpsPipelineActions} PipelineName={PipelineName} ProjectStack={ProjectStack} Repository={Repository} servicePrincipalName={servicePrincipalName} clientID={clientID} clientSecret={clientSecret} tenantID={tenantID} objectID={objectID} resourceGroupName={resourceGroupName} devopsOrgName={devopsOrgName} devopsProject={devopsProject} pat={pat} NewDecription={NewDecription} NewBranch={NewBranch} NewPipelineName={NewPipelineName}\"".format(orgName=orgName,projName=projName,username=username,DevOpsPipelineActions=DevOpsPipelineActions,PipelineName=PipelineName,ProjectStack=ProjectStack,Repository=Repository,servicePrincipalName=servicePrincipalName,clientID=clientID,clientSecret=clientSecret,tenantID=tenantID,objectID=objectID,resourceGroupName=resourceGroupName, devopsOrgName=devopsOrgName, devopsProject=devopsProject, pat=pat,NewDecription=NewDecription,NewBranch=NewBranch,NewPipelineName=NewPipelineName)
@@ -234,8 +279,6 @@ def startup():
         ansibleOut = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         ansibleOutput = ansibleOut.stdout.read()
         print (ansibleOutput)
-
-
  
 ###########################################################################################################
         if "createpipeline" in DevOpsPipelineActions :
@@ -277,7 +320,7 @@ def startup():
             my_output_list = ansibleOutput.split('\n')
             for eachword in my_output_list :            
                 if "fetchPipelineOut.stdout: " in str(my_output_list) :
-                    fetchOutput = str(str(str(my_output_list).split("fetchPipelineOut.stdout: ")[1]).split("',")[0])
+                    fetchOutput = str(str(str(str(my_output_list).split("fetchPipelineOut.stdout: ")[1]).split("',")[0]).split("nnn")[0])
 
             print (fetchOutput)
             dataout["msg"] = msg
@@ -295,7 +338,7 @@ def startup():
             my_output_list = ansibleOutput.split('\n')
             for eachword in my_output_list :
                 if "runPipelineOut.stdout: " in str(my_output_list) :
-                    fetchOutput = str(str(str(my_output_list).split("runPipelineOut.stdout: ")[1]).split("',")[0])
+                    fetchOutput = str(str(str(str(my_output_list).split("runPipelineOut.stdout: ")[1]).split("',")[0]).split("nnn")[0])
 
             print (fetchOutput)
             dataout["msg"] = msg + " " + fetchOutput
@@ -313,7 +356,7 @@ def startup():
             my_output_list = ansibleOutput.split('\n')
             for eachword in my_output_list :
                 if "fetchPipelineOut.stdout: " in str(my_output_list) :
-                    fetchOutput = str(str(str(my_output_list).split("fetchPipelineOut.stdout: ")[1]).split("',")[0])
+                    fetchOutput = str(str(str(str(my_output_list).split("fetchPipelineOut.stdout: ")[1]).split("',")[0]).split("nnn")[0])
 
             print (fetchOutput)
             dataout["msg"] = msg
@@ -332,7 +375,7 @@ def startup():
             my_output_list = ansibleOutput.split('\n')
             for eachword in my_output_list :
                 if "deletePipelineOut.stdout: " in str(my_output_list) :
-                    fetchOutput = str(str(str(my_output_list).split("deletePipelineOut.stdout: ")[1]).split("',")[0])
+                    fetchOutput = str(str(str(str(my_output_list).split("deletePipelineOut.stdout: ")[1]).split("',")[0]).split("nnn")[0])
 
             print (fetchOutput)
             dataout["msg"] = msg + " " + fetchOutput
@@ -351,7 +394,7 @@ def startup():
             my_output_list = ansibleOutput.split('\n')
             for eachword in my_output_list :
                 if "fetchPipelineOut.stdout: " in str(my_output_list) :
-                    fetchOutput = str(str(str(my_output_list).split("fetchPipelineOut.stdout: ")[1]).split("',")[0])
+                    fetchOutput = str(str(str(str(my_output_list).split("fetchPipelineOut.stdout: ")[1]).split("',")[0]).split("nnn")[0])
 
             print (fetchOutput)
             dataout["msg"] = msg
@@ -369,7 +412,7 @@ def startup():
             my_output_list = ansibleOutput.split('\n')
             for eachword in my_output_list :
                 if "updatePipelineOut.stdout: " in str(my_output_list) :
-                    fetchOutput = str(str(str(my_output_list).split("updatePipelineOut.stdout: ")[1]).split("',")[0])
+                    fetchOutput = str(str(str(str(my_output_list).split("updatePipelineOut.stdout: ")[1]).split("',")[0]).split("nnn")[0])
 
             print (fetchOutput)
             dataout["msg"] = msg + " " + fetchOutput
@@ -396,6 +439,40 @@ def startup():
         #return render_template('index.html', msg = msg, user=session["user"], ansibleOutput = str(e), organization=orgName, PipelineName=PipelineName, Repository=Repository)
 
 
+@app.route('/onboardproject', methods =['GET', 'POST'])
+def onboardproject() :
+
+    dataout = dict()
+    orgName = request.form['Organization']
+    projName = request.form['ProjectName']
+    devopsOrg = request.form['DevOpsOrg']
+    pat = request.form['PAT']
+
+    caBundle_Azure_Loc = "/etc/ssl/certs/ca-certificates.crt"
+    caBundle_Localhost_Loc = "/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt"
+
+    conn = pymysql.connect(user='myadmin@azureonboardingdb', password='Feb@2021', host='azureonboardingdb.mysql.database.azure.com', database='defaultdb', ssl= {'ssl': {'ca': caBundle_Azure_Loc}})
+    #Creating a cursor object using the cursor() method
+    cursor = conn.cursor()
+    cursor.execute("update ClientsMappingVault set devopsOrgName = '{}', devopsProject = '{}', is_onboarded = 'YES', PAT = '{}' where projectName = '{}' AND orgName = '{}'".format(devopsOrg, projName, pat, projName, orgName))
+    conn.commit()
+    cursor.execute("SELECT * FROM ClientsMappingVault WHERE orgName ='{}' AND projectName ='{}' AND is_onboarded='YES' AND devopsOrgName ='{}' AND PAT='{}'".format(orgName,projName,devopsOrg,pat))
+    result = cursor.fetchone()
+    print(result)
+    if result :
+        dataout["msg"] = "Project - "+projName+" for org - "+orgName+" and DevOps orgname - "+devopsOrg+" is onboarded successfully!!"
+        dataout["ansibleOutput"] =  "Project - "+projName+" for org - "+orgName+" and DevOps orgname - "+devopsOrg+" is onboarded successfully!!"
+        dataout["pipelineList"] = "Project Onboard Trigger went fine.."
+    
+    else :
+        dataout["msg"] = "Project - "+projName+" for org - "+orgName+" and DevOps orgname - "+devopsOrg+" is not onboarded. Check the console logs for debugging purpose!"
+        dataout["ansibleOutput"] =  "Project - "+projName+" for org - "+orgName+" and DevOps orgname - "+devopsOrg+" is not onboarded. Check the console logs for debugging purpose!"
+        dataout["pipelineList"] = "Project Onboard is failed.."
+
+    return jsonify(dataout)
+    #return render_template('index_admin.html', msg = "", user={"preferred_username": "vibhor.saxena@genpact.com", "name": "vibhor"}, organization="genpact")
+
+
 
 @app.route("/generateAzurePipelineTemplate")
 def generateAzurePipelineTemplate() :
@@ -416,6 +493,130 @@ def generateAzurePipelineTemplate() :
     return Response(ydump, mimetype='text/plain')
 
 
+
+
+@app.route("/assignRole")
+def assignRole() :
+
+    try :
+      if not session.get("user"):
+          return redirect(url_for("login"))
+    
+      print ("Printing the User details from Session ++++++++++++++++++")
+      user=session["user"]
+      #user = {'preferred_username': 'vibhor.saxena@genpact.com'}
+      organization = ""
+      organization = str(str(str(user.get('preferred_username')).split("@")[1]).split(".com")[0])
+      print (user)
+
+      upn = request.args.get("upn")
+      role = request.args.get("role")
+
+      caBundle_Azure_Loc = "/etc/ssl/certs/ca-certificates.crt"
+      caBundle_Localhost_Loc = "/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt"
+      conn = pymysql.connect(user='myadmin@azureonboardingdb', password='Feb@2021', host='azureonboardingdb.mysql.database.azure.com', database='defaultdb', ssl= {'ssl': {'ca': caBundle_Azure_Loc}})
+      #Creating a cursor object using the cursor() method
+      cursor = conn.cursor()
+      dataset = (organization.lower(), upn.lower(), role.lower())
+      cursor.execute("insert into RolesMapping (organization, userprincipalname, role) values (%s, %s, %s)", dataset)
+      print ("Inserting user's role in Azure's MySQL RolesMapping table.. Query to be issued..")
+      print ('insert into RolesMapping (organization, userprincipalname, role) values ('+organization+','+upn+','+role+')')
+      conn.commit()
+
+      cursor.execute("select * from RolesMapping where userprincipalname = %s", upn)
+      result = cursor.fetchall()
+      print(result)
+
+    except Exception as error :
+      return str(error)
+
+    finally :
+      cursor.close()
+      conn.close()
+
+    return "Role is added.."+str(result)
+
+
+
+@app.route("/amendRole")
+def amendRole() :
+
+    try : 
+      if not session.get("user"):
+          return redirect(url_for("login"))
+
+      print ("Printing the User details from Session ++++++++++++++++++")
+      user=session["user"]
+      #user = {'preferred_username': 'vibhor.saxena@genpact.com'}
+
+      organization = ""
+      organization = str(str(str(user.get('preferred_username')).split("@")[1]).split(".com")[0])
+      print (user)
+
+      upn = request.args.get("upn")
+      role = request.args.get("role")
+
+      caBundle_Azure_Loc = "/etc/ssl/certs/ca-certificates.crt"
+      caBundle_Localhost_Loc = "/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt"
+      conn = pymysql.connect(user='myadmin@azureonboardingdb', password='Feb@2021', host='azureonboardingdb.mysql.database.azure.com', database='defaultdb', ssl= {'ssl': {'ca': caBundle_Azure_Loc}})
+      #Creating a cursor object using the cursor() method
+      cursor = conn.cursor()
+      query = "update RolesMapping set role = '{}' where userprincipalname = '{}'".format(role.lower(),upn.lower())
+      cursor.execute(query)
+      conn.commit()
+      result1 = cursor.fetchone()
+      print(result1)
+      query2 = "select * from RolesMapping where userprincipalname = '{}'".format(upn.lower())
+      cursor.execute(query2)
+      result = cursor.fetchall()
+      print (result)
+
+    except Exception as error :
+      return str(error)
+
+    finally : 
+      cursor.close()
+      conn.close()
+
+    return "Role is amended.."+str(result)
+
+
+@app.route("/getRole")
+def getRole() :
+
+    try : 
+      if not session.get("user"):
+          return redirect(url_for("login"))
+
+      print ("Printing the User details from Session ++++++++++++++++++")
+      user=session["user"]
+      #user = {'preferred_username': 'vibhor.saxena@genpact.com'}
+
+      organization = ""
+      organization = str(str(str(user.get('preferred_username')).split("@")[1]).split(".com")[0])
+      print (user)
+
+      upn = request.args.get("upn")
+
+      caBundle_Azure_Loc = "/etc/ssl/certs/ca-certificates.crt"
+      caBundle_Localhost_Loc = "/etc/pki/ca-trust/extracted/openssl/ca-bundle.trust.crt"
+      conn = pymysql.connect(user='myadmin@azureonboardingdb', password='Feb@2021', host='azureonboardingdb.mysql.database.azure.com', database='defaultdb', ssl= {'ssl': {'ca': caBundle_Azure_Loc}})
+      #Creating a cursor object using the cursor() method
+      cursor = conn.cursor()
+      print ("cursorrrrrrrrrrrrrrr")
+      print(cursor)
+      cursor.execute("select * from RolesMapping where userprincipalname = '{}'".format(upn.lower()))
+      result = cursor.fetchall()
+      print(result)
+
+    except Exception as error :
+      return str(error)
+
+    finally : 
+      cursor.close()
+      conn.close()
+
+    return "Role is.."+str(result)
 
 
 def _load_cache():
@@ -457,5 +658,6 @@ def _get_token_from_cache(scope=None):
 app.jinja_env.globals.update(_build_auth_code_flow=_build_auth_code_flow)  # Used in template
 
 if __name__ == "__main__":
-    app.run()
+    app.run(threaded=True)
+
 
